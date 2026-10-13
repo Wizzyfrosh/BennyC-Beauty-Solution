@@ -1,0 +1,37 @@
+import { Client } from "pg";
+import { randomBytes } from "node:crypto";
+import { readFile, appendFile } from "node:fs/promises";
+const connection = process.env.DIRECT_URL;
+if (process.env.CI !== "true" || !connection || !process.env.GITHUB_ENV)
+  throw new Error("CI setup is for isolated GitHub test jobs only.");
+const url = new URL(connection);
+if (
+  url.pathname !== "/bennyc_ci" ||
+  !["localhost", "127.0.0.1"].includes(url.hostname)
+)
+  throw new Error("Refusing nonlocal/non-test database.");
+const client = new Client({ connectionString: connection });
+await client.connect();
+try {
+  const password = randomBytes(32).toString("base64url");
+  await client.query(
+    `CREATE ROLE bennyc_ci_runtime LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT`,
+  );
+  const sql = (await readFile("scripts/grant-runtime.sql", "utf8"))
+    .split("\n")
+    .filter((line) => !line.startsWith("\\"))
+    .join("\n")
+    .replaceAll(':"runtime_role"', '"bennyc_ci_runtime"');
+  await client.query(sql);
+  url.username = "bennyc_ci_runtime";
+  url.password = password;
+  await appendFile(
+    process.env.GITHUB_ENV,
+    `DATABASE_URL=${url.toString()}\nBETTER_AUTH_SECRET=${randomBytes(32).toString("base64url")}\n`,
+  );
+  console.log(
+    "Configured isolated test runtime role and session secret without displaying credentials.",
+  );
+} finally {
+  await client.end();
+}
