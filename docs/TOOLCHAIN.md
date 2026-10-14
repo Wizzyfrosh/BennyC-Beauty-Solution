@@ -2,6 +2,8 @@
 
 ## Storefront motion — 14 October 2026
 
+Application revision ca0e7b3ed90951610f4eaff6a57f46f42de64ec7, tree 81241b88e421c34cfcc463c0daf69bf0a268ed5b: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38615029131 passed build/typecheck/lint, 14 unit tests, all 54 real PostgreSQL/HTTP tests and disposable restore (32 tables, 13 receipt-backed batches, restored auth/runtime privileges). No rendered motion or actual production recovery result is inferred.
+
 Uses existing React/Next.js and native IntersectionObserver/MutationObserver with CSS transforms/opacity. No animation package, dependency update or lockfile change. Observer work is disconnected on route cleanup and reduced-motion changes; focused content stays still and animation classes are removed after completion. Local typecheck/lint/build pass. Browser motion QA remains pending. Primary API reference reviewed: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API.
 
 Private backend preparation references: https://neon.com/docs/guides/vercel-overview, https://neon.com/docs/guides/prisma and https://neon.com/docs/manage/roles. Neon and Vercel integrations are available but connection is unconfirmed. Keep Prisma 7.10, the existing TCP adapter and app-managed Better Auth. No service or database was provisioned. See VERCEL_BACKEND_SETUP.md.
