@@ -31,6 +31,8 @@ The user-deployed Vercel site and three supplied phone screenshots provide parti
 
 ## Primary implementation references
 
+IMG_0853/0854 extend the user-supplied phone evidence to the four preview cards and sample detail/option controls. This update is documentation only; no package/code/database change or repeat unit test is necessary. Source inspection confirms Daily Sun Care's fixture is 1,150,000 kobo for 50 ml and 1,500,000 kobo for 100 ml. The supplied screenshot shows only 50 ml selected, so switching/price-update interaction remains pending human verification.
+
 - https://nextjs.org/docs/app/getting-started/installation
 - https://better-auth.com/docs/adapters/prisma
 - https://better-auth.com/docs/integrations/next
