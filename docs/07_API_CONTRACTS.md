@@ -25,7 +25,7 @@ Mutation requests with retry risk use an `Idempotency-Key` header. Scope it to t
 
 ## Staff authentication boundary
 
-Mount Better Auth's supported Next.js handler under `/api/auth/[...all]` or its configured equivalent. Use its documented login/logout/recovery endpoints rather than building a second password/session API. Public registration is disabled. Owner-only staff provisioning is a business operation that uses supported auth APIs and then grants explicit membership; logging in alone never grants staff authority. Check current session and membership on every protected operation.
+Mount Better Auth's supported Next.js handler under `/api/auth/[...all]` or its configured equivalent. Use its documented login/logout/MFA endpoints rather than building a second password/session API. Without an approved email sender, password recovery is a trusted private-terminal maintenance command using the library's maintained hashPassword function, with session revocation and audit; no public reset endpoint is exposed. Public registration is disabled. Trusted private-terminal staff provisioning creates a new identity using library-generated credential fields/password hashing and STAFF membership; an owner can subsequently manage the membership in the protected app; logging in alone never grants staff authority. Check current session and membership on every protected operation.
 
 ## Public catalogue
 
@@ -82,7 +82,7 @@ Protected email links can carry a token in the URL fragment and exchange it via 
 | `POST /api/admin/orders/[id]/refunds` | Owner | Refund request/evidence, never instant assumed success |
 | `POST /api/admin/orders/[id]/returns` | Owner | Sold-line quantities, reason and quarantine receipt |
 | `GET /api/admin/reports/[kind]` | Owner | Defined date range/channel filters, safe export |
-| `POST/PATCH /api/admin/staff[/id]` | Owner | Trusted staff membership management, last-owner protection |
+| `GET/POST /api/admin/staff` | Owner | List/manage existing memberships, audited role/activity changes, session revocation and last-owner protection |
 
 Path IDs never override server authorization. Staff receipt operations must reject cost fields unless the actor is owner. Recheck stock/role inside relevant Prisma transactions; do not trust a submitted actor ID.
 
@@ -97,3 +97,13 @@ Authenticated job routes/tasks: expire holds; reconcile pending attempts; proces
 ## Contract verification
 
 Use shared validation types where practical, but database constraints remain independent safeguards. Test direct invalid requests, cross-order access, repeated mutation keys, modified payloads, stale totals and provider retries. An endpoint returning HTTP 200 with a fabricated success body does not satisfy its contract.
+
+## Implemented Phase 5 contracts
+
+`GET /api/admin/reports/{sales,orders,inventory}` accepts strict `from`/`to` calendar dates (inclusive Lagos days, at most 366 days), `scope=REAL|DEMO`, `channel=ALL|WALK_IN|WHATSAPP|WEBSITE`, `page` and `format=json|csv`. Real/all/page 1 are defaults. Inventory requires all channels, returns current snapshot quantities plus date-range movement deltas. Sales details use paid time; order details use creation time. Range totals are independent from the 50-row detail page. Exports have no customer PII/cost/credentials and escape spreadsheet formulas.
+
+`GET/POST /api/admin/settings` reads/updates only approved contact/hours/policy fields; requires reason and mutation key. It cannot change demo/live mode or staff authority. `/api/store` exposes only public fields; `/policies` shows saved plain text with missing-state labels. `GET /api/admin/operations` shows observed configuration booleans/exception counts/job summaries, never credentials or a launch approval.
+
+Owner `/api/admin/jobs/{payments,expiry,outbox}` and dedicated-bearer `/api/internal/jobs/{kind}` accept `{}` plus `Idempotency-Key`. Machine authorization does not use staff cookies. Results include run ID, state and bounded summary. A live lease returns retryable 503; expired leases can recover; repeating a successful key returns its durable result. Scheduler provisioning is pending a chosen host.
+
+Better Auth handles `/api/auth/two-factor/{enable,verify-totp,verify-backup-code}` and password-login challenges. Production owner business access requires verified enrollment. Enrollment/access/password changes revoke prior sessions. Password recovery preserves roles and MFA; missing MFA plus recovery codes requires controlled verified-identity maintenance, never public self-promotion.

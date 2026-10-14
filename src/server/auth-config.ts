@@ -1,3 +1,4 @@
+import { twoFactor } from "better-auth/plugins";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import type { PrismaClient } from "@/generated/prisma/client";
@@ -7,6 +8,12 @@ export function createAuth(
   config: { BETTER_AUTH_SECRET: string; BETTER_AUTH_URL: string },
 ) {
   return betterAuth({
+    plugins: [
+      twoFactor({
+        issuer: "BennyC Beauty Solution",
+        backupCodeOptions: { storeBackupCodes: "encrypted" },
+      }),
+    ],
     appName: "BennyC Beauty Solution",
     baseURL: config.BETTER_AUTH_URL,
     secret: config.BETTER_AUTH_SECRET,

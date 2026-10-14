@@ -1,7 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { getDb } from "@/server/db";
-import { mutation, audit, type Tx } from "@/server/mutations";
+import { mutation, audit, operation, type Tx } from "@/server/mutations";
 import type { StaffActor } from "@/server/admin-route";
 import { DomainError } from "@/server/domain-error";
 import { lockOrderStock, assertDemoCheckout } from "@/features/orders/service";
@@ -480,7 +480,7 @@ export async function reconcileRefunds(actor: StaffActor) {
   }
   return { checked: pending.length, results };
 }
-export async function expireHolds(actor: StaffActor) {
+export async function expireHolds(actor?: StaffActor) {
   const expired = await getDb().order.findMany({
     where: {
       items: {
@@ -496,28 +496,50 @@ export async function expireHolds(actor: StaffActor) {
   });
   let released = 0;
   for (const order of expired) {
-    const result = await mutation(
-      actor,
-      true,
-      "holds.expire",
-      crypto.randomUUID(),
-      { id: order.id },
-      async (tx, op) => {
-        const context = await lockOrderStock(tx, order.id);
-        const result = await tx.stockAllocation.updateMany({
-          where: {
-            orderItemId: { in: context.order.items.map((i) => i.id) },
-            state: "HELD",
-            expiresAt: { lte: await databaseNow(tx) },
-          },
-          data: { state: "RELEASED", releaseReason: "hold_expired" },
-        });
+    const work = async (tx: Tx, op: string) => {
+      const context = await lockOrderStock(tx, order.id);
+      const result = await tx.stockAllocation.updateMany({
+        where: {
+          orderItemId: { in: context.order.items.map((i) => i.id) },
+          state: "HELD",
+          expiresAt: { lte: await databaseNow(tx) },
+        },
+        data: { state: "RELEASED", releaseReason: "hold_expired" },
+      });
+      if (actor)
         await audit(tx, actor, op, "holds.expired", "order", order.id, {
           released: result.count,
         });
-        return { released: result.count };
-      },
-    );
+      else
+        await tx.auditEvent.create({
+          data: {
+            actorType: "system",
+            operationId: op,
+            action: "holds.expired",
+            entityType: "order",
+            entityId: order.id,
+            details: { released: result.count },
+          },
+        });
+      return { released: result.count };
+    };
+    const result = actor
+      ? await mutation(
+          actor,
+          true,
+          "holds.expire",
+          crypto.randomUUID(),
+          { id: order.id },
+          work,
+        )
+      : await operation(
+          "system:hold-expiry",
+          "holds.expire",
+          crypto.randomUUID(),
+          { id: order.id },
+          async () => {},
+          work,
+        );
     released += result.released;
   }
   return { ordersChecked: expired.length, released };

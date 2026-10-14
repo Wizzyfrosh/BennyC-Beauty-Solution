@@ -54,7 +54,8 @@ export default async function Admin() {
           <h2>Orders workspace</h2>
           <p>
             Record completed shop or WhatsApp sales after verifying payment and
-            handover. Online checkout is coming later.
+            handover. Website orders use the same physical stock and are
+            prepared in the order queue.
           </p>
           <Link className="text-link" href="/admin/sales/new">
             Record a sale

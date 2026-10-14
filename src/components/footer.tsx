@@ -12,6 +12,7 @@ export function Footer() {
           <Link href="/shop">Explore the collection</Link>
           <Link href="/about">About BennyC</Link>
           <Link href="/shopping-guide">Shopping guide</Link>
+          <Link href="/policies">Contact & policies</Link>
           <Link href="/staff/sign-in">Staff area</Link>
         </nav>
       </div>

@@ -2,7 +2,7 @@
 
 Updated: 14 October 2026 UTC. Implementation branch: `codex/phase-1-foundation`.
 
-Phases 1–4 application code have been implemented for review against the specification; remaining gates are recorded below. The user-selected teal reference replaces the earlier plum design proposal. No production database, live merchant account, real shop data or public deployment has been configured.
+Phases 1–5 application code have been implemented for review against the specification; remaining gates are recorded below. The user-selected teal reference replaces the earlier plum design proposal. No production database, live merchant account, real shop data or public deployment has been configured.
 
 | Gate | Status | Evidence/blocker |
 | --- | --- | --- |
@@ -10,7 +10,7 @@ Phases 1–4 application code have been implemented for review against the speci
 | G2 — Catalogue operations/inventory | PENDING verification | Phase 2 code implemented; local build/typecheck/lint and 4 unit tests pass. PostgreSQL suite passed on f264eaf: 20 integration tests including stock races/retries, permissions and upload validation. Configured Cloudinary upload and browser review remain pending. |
 | G3 — Customer orders/pitch demo | PENDING verification | Phase 3 code implemented; build/typecheck/lint, six unit and 32 PostgreSQL integration tests pass on 6469d4e. Browser/pitch checks remain pending. |
 | G4 — Payments/order handling | PENDING verification | Phase 4 code implemented; build/typecheck/lint, eight unit and 44 PostgreSQL integration tests pass on fc914a3. Actual merchant test payment, external notifications and browser evidence remain pending. No live credentials used. |
-| G5 — Launch/operating readiness | PENDING | No production launch authorized or performed |
+| G5 — Launch/operating readiness | PENDING verification | Phase 5 code implemented; report/MFA/recovery/job/restore CI verification is pending. Real data, operator training, hosted recovery/configuration and launch authorization remain pending. |
 
 ## Implemented Phase 1 scope
 
@@ -95,3 +95,9 @@ Provider evidence is an isolated CI fixture, not a real Paystack merchant test o
 G4 is **PENDING** actual Paystack test credentials/merchant transaction and provider callback/webhook/refund evidence, supported browser/pitch checks and authorized external notification integration. Private in-app receipts are complete; no email/SMS sender is configured or used. Hosting scheduler/machine-job authentication remains operating-readiness work. No real refund or live payment was initiated; no production database, paid service, public website deployment or merge was performed.
 
 Next concrete task: configure a dedicated development Paystack test key privately outside chat, complete one merchant test transaction and verify its callback/webhook/reconciliation/refund against the recorded order and stock; complete supported phone/desktop/keyboard and configured-media review. Choose/authorize an external notification sender before implementing delivery and its evidence. Phase 5 reports/recovery/operating setup remain later work.
+
+## Phase 5 progress — 14 October 2026
+
+FR15–FR16 and TR07–TR10: owner reports/CSV with explicit Lagos dates and demo separation; saved owner policy/contact text; audited membership controls protecting the last owner; trusted-terminal provisioning/password recovery; supported Better Auth authenticator enrollment/challenges; machine-authenticated job leases/run records; observed operations dashboard; and isolated PostgreSQL dump/restore rehearsal are implemented. See IMPLEMENTATION_PHASE_05.md and OPERATIONS_RUNBOOK.md. Local build/typecheck/lint and 10 unit tests pass at the implementation checkpoint. The new real PostgreSQL/HTTP suite and restore exercise remain **PENDING until CI finishes**. No real account recovery, merchant transaction, image upload, operator training, production schema change or publication was performed.
+
+The inherited first incomplete gate remains the supported-browser phone/desktop/keyboard review. G5 is not cleared by code completeness: real catalogue/counts/policies, merchant evidence, asset recovery, host scheduling/monitoring/rate limits/retention, support responsibilities and owner launch authorization remain outstanding.

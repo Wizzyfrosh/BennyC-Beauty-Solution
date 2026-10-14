@@ -41,9 +41,17 @@ try {
     .join("\n")
     .replaceAll(':"runtime_role"', '"bennyc_ci_runtime"');
   await client.query(phase4);
+  const phase5 = (await readFile("scripts/grant-phase5.sql", "utf8"))
+    .split("\n")
+    .filter((line) => !line.startsWith("\\"))
+    .join("\n")
+    .replaceAll(':"runtime_role"', '"bennyc_ci_runtime"');
+  await client.query(phase5);
   url.username = "bennyc_ci_runtime";
   url.password = password;
   const authSecret = randomBytes(32).toString("base64url");
+  const jobSecret = randomBytes(32).toString("base64url");
+  console.log(`::add-mask::${jobSecret}`);
   const providerKey = "sk_test_" + randomBytes(32).toString("base64url");
   console.log(`::add-mask::${providerKey}`);
   console.log(`::add-mask::${password}`);
@@ -51,7 +59,7 @@ try {
   console.log(`::add-mask::${authSecret}`);
   await appendFile(
     process.env.GITHUB_ENV,
-    `DATABASE_URL=${url.toString()}\nBETTER_AUTH_SECRET=${authSecret}\nPAYSTACK_SECRET_KEY=${providerKey}\nBENNYC_PAYSTACK_TEST=true\nPAYSTACK_API_ORIGIN=http://127.0.0.1:4010\n`,
+    `DATABASE_URL=${url.toString()}\nBETTER_AUTH_SECRET=${authSecret}\nPAYSTACK_SECRET_KEY=${providerKey}\nBENNYC_PAYSTACK_TEST=true\nPAYSTACK_API_ORIGIN=http://127.0.0.1:4010\nBENNYC_JOB_SECRET=${jobSecret}\n`,
   );
   console.log(
     "Configured isolated test runtime role and session secret without displaying credentials.",

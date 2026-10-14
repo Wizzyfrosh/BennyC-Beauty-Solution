@@ -29,15 +29,19 @@ export async function adminRoute(
         "INVALID_ORIGIN",
         "This request is not allowed.",
       );
-    return Response.json(await work(actor), {
+    const result = await work(actor);
+    if (result instanceof Response) return result;
+    return Response.json(result, {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {
     if (error instanceof StaffAccessError)
       return apiError(
         error.status,
-        "STAFF_ACCESS_REQUIRED",
-        "Staff access is required.",
+        error.code,
+        error.code === "OWNER_MFA_REQUIRED"
+          ? "Set up owner authenticator protection before production access."
+          : "Staff access is required.",
         error.status === 503,
       );
     if (error instanceof DomainError)

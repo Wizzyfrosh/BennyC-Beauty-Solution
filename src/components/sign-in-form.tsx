@@ -25,6 +25,12 @@ export function SignInForm({ configured }: { configured: boolean }) {
             ? "Too many attempts. Please wait a minute and try again."
             : "We couldn’t sign you in. Check your details or try again shortly.",
         );
+      } else if (
+        result.data &&
+        "twoFactorRedirect" in result.data &&
+        result.data.twoFactorRedirect
+      ) {
+        router.replace("/staff/two-factor");
       } else {
         router.replace("/admin");
         router.refresh();

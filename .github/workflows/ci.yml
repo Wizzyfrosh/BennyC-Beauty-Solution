@@ -59,3 +59,8 @@ jobs:
             sleep 1
           done
           npm run test:integration
+
+      - name: Rehearse PostgreSQL backup and restore on disposable copy
+        env:
+          CI_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: npm run test:restore

@@ -7,10 +7,20 @@ import {
   LayoutDashboard,
   ShoppingBag,
   Store,
+  UserRound,
 } from "lucide-react";
 export function AdminNav({ owner }: { owner: boolean }) {
   const path = usePathname();
   const links = [
+    ...(owner
+      ? [
+          { href: "/admin/reports", label: "Reports", Icon: LayoutDashboard },
+          { href: "/admin/operations", label: "Operations", Icon: Boxes },
+          { href: "/admin/staff", label: "Staff access", Icon: UserRound },
+          { href: "/admin/settings", label: "Business settings", Icon: Store },
+        ]
+      : []),
+    { href: "/staff/security", label: "Authenticator", Icon: UserRound },
     ...(owner
       ? [
           {

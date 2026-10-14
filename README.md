@@ -2,7 +2,7 @@
 
 **Cosmetics & Makeup Venture** — a Next.js storefront and staff workspace.
 
-Phases 1–4 code is implemented for review; the real provider test gate remains pending. The storefront follows the supplied teal beauty-store reference: botanical hero, pale-mint feature strip, circular categories, product cards and a product banner. All generated packaging, demo prices and sample products are explicitly illustrative. Real online ordering/provider payments remain closed; development-only guest checkout simulation is implemented. Staff inventory and completed shop/WhatsApp sales are implemented.
+Phases 1–5 code is implemented for review; production and the real provider test gate remain pending. The storefront follows the supplied teal beauty-store reference: botanical hero, pale-mint feature strip, circular categories, product cards and a product banner. All generated packaging, demo prices and sample products are explicitly illustrative. Real online ordering/provider payments remain closed; development-only guest checkout simulation is implemented. Staff inventory and completed shop/WhatsApp sales are implemented.
 
 ## Run the design preview
 
@@ -41,6 +41,7 @@ psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-runtime.sql
 psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase2.sql
 psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase3.sql
 psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase4.sql
+psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase5.sql
 ```
 
 Phase 2 grants catalogue/balance/order writes used by server-authorized services, plus insert-only audit/movement history. The grant scripts do not grant application DDL, staff membership writes or history rewrites.
@@ -55,7 +56,7 @@ npm run dev
 
 The seed is idempotent, refuses production/non-demo datasets and checks the actual database name. It creates 12 clearly marked sample products, size/shade variants and one unpublished draft. It creates no stock, orders or sales.
 
-`owner:create` runs only in a private interactive terminal. It confirms the target database, hides password input, uses Better Auth's password hashing and creates the first owner transactionally. It refuses existing owners and never silently promotes an existing identity. Sign in at **/staff/sign-in**. Do not expose this script as an HTTP endpoint. Staff provisioning and owner recovery beyond this one-time bootstrap are later controlled operating tasks.
+`owner:create` runs only in a private interactive terminal. It confirms the target database, hides password input, uses Better Auth's password hashing and creates the first owner transactionally. It refuses existing owners and never silently promotes an existing identity. Sign in at **/staff/sign-in**. Do not expose this script as an HTTP endpoint. Use the private `staff:provision` and `staff:recover` commands for later maintenance; see [OPERATIONS_RUNBOOK.md](docs/OPERATIONS_RUNBOOK.md). Password recovery preserves MFA. Production owners must complete authenticator enrollment at `/staff/security`.
 
 Production requires HTTPS and separate secret management. Nothing in this branch deploys a store, connects a live merchant account or accepts real orders.
 
@@ -122,3 +123,11 @@ Staff use `/admin/orders` to prepare and hand over orders. Owners configure appr
 ## Phase 4 development test payments
 
 Configure a private Paystack **test** key in the server environment and set `BENNYC_PAYSTACK_TEST=true` for a dedicated development demo store. Live keys and production payment processing are rejected. The private order page offers hosted test checkout/verification. Owners use `/admin/payments` for bounded reconciliation, queued in-app receipts, paid cancellation, verified dashboard refund evidence and quarantined physical returns. No email/SMS is sent and no real refund is initiated by the app. See [IMPLEMENTATION_PHASE_04.md](docs/IMPLEMENTATION_PHASE_04.md) for setup, exact boundaries and pending merchant/provider evidence. CI provider fixtures are fault tests, not real settlement evidence.
+
+## Phase 5 reports and operating controls
+
+Owners use `/admin/reports` for Lagos-date sales/order reports and current stock snapshots. Real records are the default; sample records require a separate demo filter. Integer-kobo sales, refunds and extra captures are defined separately. CSV exports include one bounded page plus range totals, with spreadsheet formula escaping. Net flow is not profit.
+
+`/admin/settings` persists owner-provided contact/policy text. `/admin/staff` manages existing memberships, revokes sessions on access changes and protects the last active owner. `/admin/operations` shows observed exceptions, receipt queues, ledger discrepancies and bounded job runs. Better Auth authenticator challenges and encrypted one-time recovery codes are implemented. No account credentials or real business details are invented.
+
+A separate server-only `BENNYC_JOB_SECRET` authenticates `/api/internal/jobs/{payments,expiry,outbox}`. Idempotency keys, durable leases and run records support safe retries. No host schedule is provisioned. The CI-only `npm run test:restore` rehearses a PostgreSQL 17 custom-format backup into a fresh disposable database and verifies record fingerprints, receipt-backed stock balances, constraints, runtime permissions and restored staff authentication. It does not prove production or image-byte recovery. See [IMPLEMENTATION_PHASE_05.md](docs/IMPLEMENTATION_PHASE_05.md) and the [operating runbook](docs/OPERATIONS_RUNBOOK.md).

@@ -2444,3 +2444,40 @@ summary:focus-visible {
     font-size: 24px;
   }
 }
+.table-scroll {
+  overflow: auto;
+}
+.table-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.table-scroll th,
+.table-scroll td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #dce7e3;
+  white-space: nowrap;
+}
+.table-scroll th {
+  color: #24665e;
+}
+.recovery-codes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+}
+.recovery-codes code {
+  padding: 10px;
+  background: #eff6f3;
+  overflow-wrap: anywhere;
+}
+.workspace-form fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.workspace-form fieldset:disabled {
+  opacity: 0.75;
+}
