@@ -126,7 +126,7 @@ export function StaffWorkspace() {
       {staff?.map((s) => (
         <form
           className="workspace-form"
-          key={s.userId}
+          key={`${s.userId}:${s.role}:${s.active}`}
           onSubmit={async (e) => {
             e.preventDefault();
             const form = new FormData(e.currentTarget);

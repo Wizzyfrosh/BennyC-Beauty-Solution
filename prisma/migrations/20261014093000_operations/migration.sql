@@ -80,11 +80,11 @@ ALTER TABLE "twoFactor" ADD CONSTRAINT "twoFactor_userId_fkey" FOREIGN KEY ("use
 
 ALTER TABLE job_runs ADD CONSTRAINT job_state_valid CHECK(state IN ('RUNNING','SUCCEEDED','FAILED')), ADD CONSTRAINT job_attempts_valid CHECK(attempts>0);
 CREATE FUNCTION public.manage_staff(actor_id text,target_id text,new_role text,new_active boolean,operation_id uuid) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
-DECLARE current_role text; target_role text; target_active boolean;
+DECLARE actor_role text; target_role text; target_active boolean;
 BEGIN
  PERFORM pg_advisory_xact_lock(72601302);
- current_role:=public.lock_active_staff(actor_id,true);
- IF current_role IS NULL THEN RAISE EXCEPTION 'active owner required' USING ERRCODE='42501'; END IF;
+ actor_role:=public.lock_active_staff(actor_id,true);
+ IF actor_role IS NULL THEN RAISE EXCEPTION 'active owner required' USING ERRCODE='42501'; END IF;
  IF new_role NOT IN ('owner','staff') OR new_active IS NULL THEN RAISE EXCEPTION 'invalid staff update' USING ERRCODE='22023'; END IF;
  IF NOT EXISTS(SELECT 1 FROM public.idempotency_requests r WHERE r.id=operation_id AND r.operation='staff.manage' AND r.actor_scope=actor_id AND r.state='processing') THEN RAISE EXCEPTION 'authorized operation required' USING ERRCODE='42501'; END IF;
  SELECT role::text,active INTO target_role,target_active FROM public.staff_members WHERE user_id=target_id FOR UPDATE;
