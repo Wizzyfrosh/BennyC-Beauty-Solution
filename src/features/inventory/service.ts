@@ -6,22 +6,13 @@ import {
   audit,
   lockVariants,
   businessDate,
-  type Tx,
 } from "@/server/mutations";
 import type { StaffActor } from "@/server/admin-route";
 import { DomainError } from "@/server/domain-error";
 import { receiptSchema, adjustmentSchema, saleSchema } from "./validation";
+import { lockedBatches } from "./stock";
 import { eligibleBatch } from "./rules";
 
-async function lockedBatches(tx: Tx, variantIds: string[]) {
-  await tx.$queryRaw(
-    Prisma.sql`SELECT id FROM public.stock_batches WHERE variant_id IN (${Prisma.join(variantIds.map((id) => Prisma.sql`${id}::uuid`))}) ORDER BY id FOR UPDATE`,
-  );
-  return tx.stockBatch.findMany({
-    where: { variantId: { in: variantIds } },
-    orderBy: [{ expiryDate: "asc" }, { receivedAt: "asc" }, { id: "asc" }],
-  });
-}
 export async function receiveStock(
   actor: StaffActor,
   key: string | null,
@@ -134,7 +125,7 @@ export async function adjustStock(
       if (!target)
         throw new DomainError(404, "BATCH_NOT_FOUND", "Batch not found.");
       const [variant] = await lockVariants(tx, [target.variantId]);
-      await lockedBatches(tx, [variant.id]);
+      const locked = await lockedBatches(tx, [variant.id]);
       const batch = await tx.stockBatch.findUniqueOrThrow({
         where: { id: input.batchId },
       });
@@ -195,6 +186,16 @@ export async function adjustStock(
           }
         }
       }
+      const reserved = locked.find((b) => b.id === batch.id)!;
+      if (
+        batch.onHandQty + physical - batch.quarantinedQty - quarantine <
+        reserved.held + reserved.committed
+      )
+        throw new DomainError(
+          409,
+          "ALLOCATED_STOCK",
+          "This adjustment would affect reserved or paid units. Resolve their orders first.",
+        );
       const updated = await tx.stockBatch.update({
         where: { id: batch.id },
         data: {
@@ -318,6 +319,8 @@ export async function recordSale(
             batch,
             today,
             variant.product.expiryRequired,
+            batch.held,
+            batch.committed,
           );
           const quantity = Math.min(needed, available);
           if (quantity) {

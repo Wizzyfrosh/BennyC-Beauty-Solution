@@ -7,7 +7,7 @@ export async function publicAvailability(ids: string[]) {
   const rows = await getDb().$queryRaw<
     Array<{ variantId: string; available: number }>
   >(Prisma.sql`
- SELECT v.id AS "variantId",COALESCE(SUM(CASE WHEN b.active AND b.expiry_precision <> 'month' AND (b.expiry_date IS NULL OR b.expiry_date > (CURRENT_TIMESTAMP AT TIME ZONE 'Africa/Lagos')::date) AND (NOT p.expiry_required OR (b.expiry_precision='day' AND b.expiry_date IS NOT NULL)) THEN b.on_hand_qty-b.quarantined_qty ELSE 0 END),0)::integer AS available
+ SELECT v.id AS "variantId",COALESCE(SUM(CASE WHEN b.active AND b.expiry_precision <> 'month' AND (b.expiry_date IS NULL OR b.expiry_date > (CURRENT_TIMESTAMP AT TIME ZONE 'Africa/Lagos')::date) AND (NOT p.expiry_required OR (b.expiry_precision='day' AND b.expiry_date IS NOT NULL)) THEN GREATEST(0,b.on_hand_qty-b.quarantined_qty-COALESCE((SELECT SUM(a.quantity) FROM stock_allocations a WHERE a.batch_id=b.id AND (a.state='committed' OR (a.state='held' AND a.expires_at>clock_timestamp()))),0)) ELSE 0 END),0)::integer AS available
  FROM public.product_variants v JOIN public.products p ON p.id=v.product_id LEFT JOIN public.stock_batches b ON b.variant_id=v.id
  WHERE v.id IN (${Prisma.join(ids.map((id) => Prisma.sql`${id}::uuid`))}) GROUP BY v.id`);
   return new Map(
@@ -103,6 +103,7 @@ export async function inventoryOverview(actor: StaffActor) {
 }
 export async function recentSales() {
   return getDb().order.findMany({
+    where: { channel: { in: ["WALK_IN", "WHATSAPP"] } },
     take: 30,
     orderBy: { createdAt: "desc" },
     select: {

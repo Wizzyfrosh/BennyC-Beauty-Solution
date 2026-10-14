@@ -2,7 +2,7 @@
 
 **Cosmetics & Makeup Venture** — a Next.js storefront and staff workspace.
 
-Phases 1 and 2 are implemented for review. The storefront follows the supplied teal beauty-store reference: botanical hero, pale-mint feature strip, circular categories, product cards and a product banner. All generated packaging, demo prices and sample products are explicitly illustrative. Online checkout/provider payments remain closed. Staff inventory and completed shop/WhatsApp sales are implemented.
+Phases 1–3 are implemented for review. The storefront follows the supplied teal beauty-store reference: botanical hero, pale-mint feature strip, circular categories, product cards and a product banner. All generated packaging, demo prices and sample products are explicitly illustrative. Real online ordering/provider payments remain closed; development-only guest checkout simulation is implemented. Staff inventory and completed shop/WhatsApp sales are implemented.
 
 ## Run the design preview
 
@@ -35,13 +35,14 @@ npm run db:migrate
 psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-runtime.sql
 ```
 
-`psql` must receive the actual private migration connection from your terminal environment; it does not automatically load `.env`. On Windows, use your SQL client's query editor or the equivalent environment-variable syntax. The foundation SQL file grants authentication lifecycle writes and catalogue/membership reads. For the Phase 2 branch, also apply:
+`psql` must receive the actual private migration connection from your terminal environment; it does not automatically load `.env`. On Windows, use your SQL client's query editor or the equivalent environment-variable syntax. The foundation SQL file grants authentication lifecycle writes and catalogue/membership reads. Also apply the Phase 2 and Phase 3 permissions:
 
 ```bash
 psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase2.sql
+psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase3.sql
 ```
 
-Phase 2 grants catalogue/balance/order writes used by server-authorized services, plus insert-only audit/movement history. Neither file grants application DDL, staff membership writes or history rewrites.
+Phase 2 grants catalogue/balance/order writes used by server-authorized services, plus insert-only audit/movement history. The grant scripts do not grant application DDL, staff membership writes or history rewrites.
 
 7. For sample data, set `BENNYC_DEMO_DATA=true` and `SEED_DATABASE_NAME=bennyc_development`, matching the actual database. Then run:
 
@@ -110,3 +111,9 @@ Antigravity can continue directly in this repository. Read `AGENTS.md` and `docs
 - Staff/owner: `/admin/sales/new` to record an already paid and handed-over shop/WhatsApp sale. A transfer screenshot is insufficient evidence. Sample catalogues produce labelled demo sale records only.
 
 Signed product uploads require private Cloudinary environment configuration; see `.env.example`. No live provider upload has yet been verified. Month-only/unknown expiry units remain blocked. The first incomplete visual/media gate stays visible in PROJECT_STATUS.md.
+
+## Phase 3 private demo
+
+Set `BENNYC_DEMO_CHECKOUT=true` only in a dedicated development demo store, then run `npm run dev`. Production rejects simulation regardless of the flag. Receive sample stock before testing; no stock is invented by the seed. Live product pages offer a shopping bag, `/checkout` validates a fresh server quote and reserves stock, and `/orders/[id]` requires a private scoped cookie. Contact/address drafts stay on the server; tab storage contains only a draft reference for refresh recovery. `/preview` remains read-only.
+
+Staff use `/admin/orders` to prepare and hand over orders. Owners configure approved delivery areas/fees at `/admin/delivery`; unmatched addresses cannot checkout for delivery. Simulated success commits allocation, pickup/dispatch deducts physical stock once, and delivered completion does not deduct again. See [IMPLEMENTATION_PHASE_03.md](docs/IMPLEMENTATION_PHASE_03.md) for the walkthrough, limitations and gate evidence. No real online payment, receipt delivery, paid refund or public deployment is enabled.

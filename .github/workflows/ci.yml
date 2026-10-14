@@ -27,6 +27,7 @@ jobs:
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/bennyc_ci
       BETTER_AUTH_URL: http://localhost:3000
       BENNYC_DEMO_DATA: "true"
+      BENNYC_DEMO_CHECKOUT: "true"
       SEED_DATABASE_NAME: bennyc_ci
       NEXT_TELEMETRY_DISABLED: "1"
     steps:

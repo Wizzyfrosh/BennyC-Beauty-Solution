@@ -287,10 +287,12 @@ model StockBatch {
   onHandQty        Int                 @default(0) @map("on_hand_qty")
   quarantinedQty   Int                 @default(0) @map("quarantined_qty")
   active           Boolean             @default(true)
+  allocations      StockAllocation[]
   cost             BatchCost?
   movements        InventoryMovement[]
   updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz
 
+  @@unique([id, variantId])
   @@unique([variantId, batchCode, receiptReference])
   @@index([variantId, active, expiryDate])
   @@map("stock_batches")
@@ -348,9 +350,10 @@ model InventoryMovement {
 }
 
 model AuditEvent {
+  actorType   String             @default("staff") @map("actor_type")
   id          String             @id @default(uuid()) @db.Uuid
-  actorUserId String             @map("actor_user_id")
-  actor       User               @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  actorUserId String?            @map("actor_user_id")
+  actor       User?              @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
   action      String             @db.VarChar(80)
   entityType  String             @map("entity_type") @db.VarChar(80)
   entityId    String             @map("entity_id")
@@ -364,6 +367,17 @@ model AuditEvent {
 }
 
 model Order {
+  guestSessionId            String?            @map("guest_session_id") @db.Uuid
+  guestSession              GuestSession?      @relation(fields: [guestSessionId], references: [id], onDelete: Restrict)
+  customerName              String?            @map("customer_name") @db.VarChar(120)
+  customerEmail             String?            @map("customer_email") @db.VarChar(254)
+  customerPhone             String?            @map("customer_phone") @db.VarChar(20)
+  addressSnapshot           Json?              @map("address_snapshot")
+  deliveryZoneId            String?            @map("delivery_zone_id") @db.Uuid
+  deliveryZone              DeliveryZone?      @relation(fields: [deliveryZoneId], references: [id], onDelete: Restrict)
+  holdExpiresAt             DateTime?          @map("hold_expires_at") @db.Timestamptz
+  exceptionCode             String?            @map("exception_code")
+  accessTokens              OrderAccessToken[]
   id                        String             @id @default(uuid()) @db.Uuid
   orderNumber               String             @unique @map("order_number")
   channel                   OrderChannel
@@ -378,8 +392,8 @@ model Order {
   confirmedPaymentAttemptId String?            @unique @map("confirmed_payment_attempt_id") @db.Uuid
   confirmedPayment          PaymentAttempt?    @relation("ConfirmedPayment", fields: [confirmedPaymentAttemptId], references: [id], onDelete: Restrict)
   paymentAttempts           PaymentAttempt[]   @relation("OrderAttempts")
-  actorUserId               String             @map("actor_user_id")
-  actor                     User               @relation("OrderActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+  actorUserId               String?            @map("actor_user_id")
+  actor                     User?              @relation("OrderActor", fields: [actorUserId], references: [id], onDelete: Restrict)
   operationId               String             @unique @map("operation_id") @db.Uuid
   operation                 IdempotencyRequest @relation(fields: [operationId], references: [id], onDelete: Restrict)
   items                     OrderItem[]
@@ -405,7 +419,9 @@ model OrderItem {
   quantity            Int
   lineTotalKobo       Int                 @map("line_total_kobo")
   movements           InventoryMovement[]
+  allocations         StockAllocation[]
 
+  @@unique([id, variantId])
   @@index([orderId])
   @@map("order_items")
 }
@@ -430,4 +446,81 @@ model PaymentAttempt {
   @@unique([id, orderId])
   @@index([orderId])
   @@map("payment_attempts")
+}
+
+model GuestSession {
+  checkoutIntents CheckoutIntent[]
+  id              String           @id @default(uuid()) @db.Uuid
+  tokenHash       String           @unique @map("token_hash") @db.VarChar(64)
+  expiresAt       DateTime         @map("expires_at") @db.Timestamptz
+  revokedAt       DateTime?        @map("revoked_at") @db.Timestamptz
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  orders          Order[]
+
+  @@map("guest_sessions")
+}
+
+model DeliveryZone {
+  id                  String  @id @default(uuid()) @db.Uuid
+  name                String  @db.VarChar(100)
+  state               String  @db.VarChar(80)
+  localGovernmentArea String  @map("local_government_area") @db.VarChar(100)
+  areas               Json
+  feeKobo             Int     @map("fee_kobo")
+  active              Boolean @default(true)
+  orders              Order[]
+
+  @@map("delivery_zones")
+}
+
+enum AllocationState {
+  HELD      @map("held")
+  COMMITTED @map("committed")
+  RELEASED  @map("released")
+  CONSUMED  @map("consumed")
+}
+
+model StockAllocation {
+  id            String          @id @default(uuid()) @db.Uuid
+  orderItemId   String          @map("order_item_id") @db.Uuid
+  batchId       String          @map("batch_id") @db.Uuid
+  variantId     String          @map("variant_id") @db.Uuid
+  item          OrderItem       @relation(fields: [orderItemId, variantId], references: [id, variantId], onDelete: Restrict)
+  batch         StockBatch      @relation(fields: [batchId, variantId], references: [id, variantId], onDelete: Restrict)
+  quantity      Int
+  state         AllocationState @default(HELD)
+  expiresAt     DateTime?       @map("expires_at") @db.Timestamptz
+  releaseReason String?         @map("release_reason")
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([batchId, state, expiresAt])
+  @@index([orderItemId])
+  @@map("stock_allocations")
+}
+
+model OrderAccessToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  orderId   String    @map("order_id") @db.Uuid
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  tokenHash String    @unique @map("token_hash") @db.VarChar(64)
+  kind      String    @db.VarChar(10)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([orderId])
+  @@map("order_access_tokens")
+}
+
+model CheckoutIntent {
+  id             String       @id @default(uuid()) @db.Uuid
+  guestSessionId String       @map("guest_session_id") @db.Uuid
+  guestSession   GuestSession @relation(fields: [guestSessionId], references: [id], onDelete: Restrict)
+  request        Json
+  expiresAt      DateTime     @map("expires_at") @db.Timestamptz
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([guestSessionId])
+  @@map("checkout_intents")
 }

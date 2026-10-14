@@ -29,6 +29,12 @@ try {
     .join("\n")
     .replaceAll(':"runtime_role"', '"bennyc_ci_runtime"');
   await client.query(phase2);
+  const phase3 = (await readFile("scripts/grant-phase3.sql", "utf8"))
+    .split("\n")
+    .filter((line) => !line.startsWith("\\"))
+    .join("\n")
+    .replaceAll(':"runtime_role"', '"bennyc_ci_runtime"');
+  await client.query(phase3);
   url.username = "bennyc_ci_runtime";
   url.password = password;
   const authSecret = randomBytes(32).toString("base64url");

@@ -40,3 +40,7 @@ The installed Better Auth sign-up implementation was inspected to confirm the su
 ## Phase 2 additions
 
 Cloudinary Node SDK 2.11.0 and sharp 0.35.5 were checked via their current package metadata and pinned in the existing lockfile. Official references: https://cloudinary.com/documentation/node_image_and_video_upload and https://sharp.pixelplumbing.com/api-input/. No additional backend, auth system or ORM was added. Real provider upload remains pending configuration.
+
+## Phase 3 additions
+
+No new dependency or lockfile change. Existing Node crypto, Next.js async cookies/route handlers, Prisma transactions and PostgreSQL row locks implement guest access and stock reservations. Official references: https://nextjs.org/docs/app/api-reference/functions/cookies, https://nodejs.org/api/crypto.html#cryptorandombytessize-callback and https://www.postgresql.org/docs/17/explicit-locking.html. Six focused unit tests now cover validation, money/expiry and the production simulation guard. Final Phase 3 CI evidence is recorded in PROJECT_STATUS.md when available.

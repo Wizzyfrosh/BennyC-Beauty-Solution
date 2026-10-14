@@ -10,6 +10,11 @@ export function ProductDetail({
   product: PublicProduct;
   preview?: boolean;
 }) {
+  const ordering =
+    !preview &&
+    product.isDemo &&
+    process.env.NODE_ENV !== "production" &&
+    process.env.BENNYC_DEMO_CHECKOUT === "true";
   return (
     <section className="container page-section">
       <Link
@@ -34,13 +39,18 @@ export function ProductDetail({
               Demonstration product · Not for sale
             </span>
           )}
-          <VariantPicker variants={product.variants} />
+          <VariantPicker
+            variants={product.variants}
+            name={product.name}
+            ordering={ordering}
+          />
           <p className="detail-description">{product.description}</p>
           <div className="notice">
             <Info size={20} />
             <p>
-              Online ordering is not open yet. Availability will be confirmed
-              when shopping opens.
+              {ordering
+                ? "Sample checkout is enabled for this private demonstration. No real payment is taken."
+                : "Online ordering is not open yet. Availability will be confirmed when shopping opens."}
             </p>
           </div>
           <details className="product-accordion">

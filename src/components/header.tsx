@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Leaf, Menu, Search, ShoppingBag, UserRound } from "lucide-react";
+import { Leaf, Menu, Search, UserRound } from "lucide-react";
+import { CartLink } from "./cart";
 import { Brand } from "./brand";
 export function Header() {
   return (
@@ -44,13 +45,7 @@ export function Header() {
           >
             <UserRound size={21} strokeWidth={1.5} />
           </Link>
-          <Link
-            className="icon-button"
-            href="/shopping-guide"
-            aria-label="Shopping and ordering information"
-          >
-            <ShoppingBag size={21} strokeWidth={1.5} />
-          </Link>
+          <CartLink />
         </div>
         <details className="mobile-menu">
           <summary aria-label="Open navigation">

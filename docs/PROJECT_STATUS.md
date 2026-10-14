@@ -8,7 +8,7 @@ Phase 1 application code has been implemented against the complete specification
 | --- | --- | --- |
 | G1 — Foundation, catalogue, staff | **PENDING verification** | Build/typecheck/lint, 2 unit tests and 10 real PostgreSQL/auth integration tests passed. Phone/desktop browser review is pending. |
 | G2 — Catalogue operations/inventory | PENDING verification | Phase 2 code implemented; local build/typecheck/lint and 4 unit tests pass. PostgreSQL suite passed on f264eaf: 20 integration tests including stock races/retries, permissions and upload validation. Configured Cloudinary upload and browser review remain pending. |
-| G3 — Customer orders/pitch demo | PENDING | Not implemented; follows G2 |
+| G3 — Customer orders/pitch demo | PENDING verification | Phase 3 code implemented; six unit tests pass. Final PostgreSQL and browser/pitch checks pending. |
 | G4 — Payments/order handling | PENDING | Not implemented; no payment credentials used |
 | G5 — Launch/operating readiness | PENDING | No production launch authorized or performed |
 
@@ -45,7 +45,7 @@ The initial `tsx --test` command could not open its IPC socket in this container
 1. Database/auth verification passed in GitHub Actions. Continue with the outstanding browser/keyboard gate; do not interpret backend tests as visual approval.
 2. Run the visual and keyboard walkthrough at 360 px, 768 px and desktop in a browser; compare `/preview` with the supplied reference and verify variant interaction.
 3. Configure a dedicated developer PostgreSQL database privately, migrate, apply runtime grants, seed and provision the first owner following README. No secrets should be pasted into chat.
-4. Phase 2 development continued with user authorization. Complete its outstanding browser and configured-media checks before declaring G2 complete. Customer cart/checkout and provider payments remain later phases.
+4. Phase 2 development continued with user authorization. Complete its outstanding browser and configured-media checks before declaring G2 complete. Phase 3 guest demo checkout continued with explicit user authorization; provider payments remain Phase 4.
 
 ## Verified GitHub CI evidence
 
@@ -65,3 +65,7 @@ The user explicitly authorized continuing development. Catalogue editing, signed
 Phase 2 CI evidence: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38518970667. Both migrations applied, seed repeated, final-unit race and full-basket rollback passed. FEFO/variant separation, receipt/sale retry safety, expiry/quarantine, owner-only costs/adjustments, snapshot retention and append-only history passed.
 
 Final Phase 2 application evidence: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38519500510. Build/typecheck/lint, 4 unit tests and 20 integration tests passed with zero failures. The added valid-image test confirms a missing Cloudinary configuration returns 503 without creating an image record, and malformed retry keys are rejected before provider work. Real Cloudinary operation, visual/keyboard review, and production setup remain pending.
+
+## Phase 3 progress — 14 October 2026
+
+FR08–FR10, FR12 and protected FR13 are implemented for a development-only sample store. Cart/server quote, approved delivery matching, expiring FEFO holds, shared allocation-aware stock, server-side refresh drafts, private scoped order access, staff queue and one-time pickup/dispatch consumption are added. See IMPLEMENTATION_PHASE_03.md. Six unit tests pass; final real PostgreSQL CI and phone/desktop/keyboard pitch checks are pending at this checkpoint. No real provider payment, production database or public deployment is enabled.

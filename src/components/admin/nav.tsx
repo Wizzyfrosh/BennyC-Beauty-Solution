@@ -15,6 +15,10 @@ export function AdminNav({ owner }: { owner: boolean }) {
     ...(owner
       ? [{ href: "/admin/products", label: "Products", Icon: Package }]
       : []),
+    { href: "/admin/orders", label: "Website orders", Icon: ShoppingBag },
+    ...(owner
+      ? [{ href: "/admin/delivery", label: "Delivery areas", Icon: Store }]
+      : []),
     { href: "/admin/inventory", label: "Inventory", Icon: Boxes },
     { href: "/admin/sales/new", label: "Record sale", Icon: ShoppingBag },
     { href: "/shop", label: "View storefront", Icon: Store },

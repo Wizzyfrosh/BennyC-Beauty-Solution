@@ -6,7 +6,7 @@ import { getDb } from "./db";
 import { DomainError } from "./domain-error";
 import type { StaffActor } from "./admin-route";
 export type Tx = Prisma.TransactionClient;
-function canonical(value: unknown): string {
+export function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
   if (value !== null && typeof value === "object")
     return `{${Object.entries(value)
@@ -18,12 +18,12 @@ function canonical(value: unknown): string {
 }
 export const digest = (v: string) =>
   createHash("sha256").update(v).digest("hex");
-export async function mutation<T extends Prisma.InputJsonObject>(
-  actor: StaffActor,
-  owner: boolean,
+export async function operation<T extends Prisma.InputJsonObject>(
+  scope: string,
   operation: string,
   key: string | null,
   input: unknown,
+  authorize: (tx: Tx) => Promise<void>,
   work: (tx: Tx, operationId: string) => Promise<T>,
 ): Promise<T> {
   const validKey = z
@@ -38,20 +38,12 @@ export async function mutation<T extends Prisma.InputJsonObject>(
     try {
       return await getDb().$transaction(
         async (tx) => {
-          const membership = await tx.$queryRaw<
-            Array<{ role: string }>
-          >`SELECT public.lock_active_staff(${actor.userId},${owner}) AS role`;
-          if (!membership[0]?.role)
-            throw new DomainError(
-              403,
-              "ACCESS_REVOKED",
-              "Your access has changed. Sign in again.",
-            );
-          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`${operation}:${actor.userId}:${keyHash}`},0))`;
+          await authorize(tx);
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`${operation}:${scope}:${keyHash}`},0))`;
           const where = {
             operation_actorScope_keyHash: {
               operation,
-              actorScope: actor.userId,
+              actorScope: scope,
               keyHash,
             },
           };
@@ -72,7 +64,7 @@ export async function mutation<T extends Prisma.InputJsonObject>(
             );
           }
           const record = await tx.idempotencyRequest.create({
-            data: { operation, actorScope: actor.userId, keyHash, requestHash },
+            data: { operation, actorScope: scope, keyHash, requestHash },
           });
           const result = await work(tx, record.id);
           await tx.idempotencyRequest.update({
@@ -98,6 +90,33 @@ export async function mutation<T extends Prisma.InputJsonObject>(
     503,
     "BUSY",
     "The store is busy. Retry the same operation.",
+  );
+}
+export async function mutation<T extends Prisma.InputJsonObject>(
+  actor: StaffActor,
+  owner: boolean,
+  name: string,
+  key: string | null,
+  input: unknown,
+  work: (tx: Tx, id: string) => Promise<T>,
+) {
+  return operation(
+    actor.userId,
+    name,
+    key,
+    input,
+    async (tx) => {
+      const rows = await tx.$queryRaw<
+        Array<{ role: string }>
+      >`SELECT public.lock_active_staff(${actor.userId},${owner}) AS role`;
+      if (!rows[0]?.role)
+        throw new DomainError(
+          403,
+          "ACCESS_REVOKED",
+          "Your access has changed. Sign in again.",
+        );
+    },
+    work,
   );
 }
 export async function audit(
