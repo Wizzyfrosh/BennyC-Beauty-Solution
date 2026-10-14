@@ -25,8 +25,22 @@ Simulation needs `BENNYC_DEMO_CHECKOUT=true`, a development environment, a demo 
 
 ## Verification and limits
 
-Local build/typecheck/lint and six unit tests have passed during development. Final PostgreSQL CI evidence is pending at this checkpoint. The added real-HTTP suite covers final-unit contention, concurrent retry, mixed-basket rollback, online holds versus counter sales/adjustments, expiry without jobs, stale prices, malicious money fields, delivery fees, simulation/one-time handoff, private token isolation/expiry/revocation, guest revocation/throttling and refresh intent recovery. Earlier auth/inventory tests remain regression gates.
+Local build/typecheck/lint and six unit tests have passed during development. Final PostgreSQL CI passed on `6469d4eb84ed66dfe97a70e7c69b8ea217e932cb`: all 32 integration tests and six unit tests passed with zero failures. Run: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38523038561. The added real-HTTP suite covers final-unit contention, concurrent retry, mixed-basket rollback, online holds versus counter sales/adjustments, expiry without jobs, stale prices, malicious money fields, delivery fees, simulation/one-time handoff, private token isolation/expiry/revocation, guest revocation/throttling and refresh intent recovery. Earlier auth/inventory tests remain regression gates.
 
-G3 remains **PENDING verification** until database evidence and phone/desktop/keyboard demo checks are recorded. Browser control is unavailable here; no pixel-perfect claim is made. Queue displays the latest 50 orders; delivery lists are bounded to 100 areas. Add pagination/search before a larger operating catalogue. Guest session creation and access exchange use coarse shared throttles until production hosting supplies a trusted proxy identity; reservation/quote limits are guest-scoped. Phase 5 must finalize production limits, retention and jobs. Expired records are retained for audit and are not silently treated as current stock.
+G3 remains **PENDING verification** until phone/desktop/keyboard demo checks are recorded; database evidence now passes. Browser control is unavailable here; no pixel-perfect claim is made. Queue displays the latest 50 orders; delivery lists are bounded to 100 areas. Add pagination/search before a larger operating catalogue. Guest session creation and access exchange use coarse shared throttles until production hosting supplies a trusted proxy identity; reservation/quote limits are guest-scoped. Phase 5 must finalize production limits, retention and jobs. Expired records are retained for audit and are not silently treated as current stock.
 
-Next task: verify real PostgreSQL races, migrations and permissions in disposable GitHub CI; fix any failures, then complete the browser/media checks and owner pitch walkthrough. Paystack test confirmation, receipts, reconciliation/refunds and live rollout remain later gates.
+Next task: complete the browser/media checks and owner pitch walkthrough. PostgreSQL races, migrations, privacy and runtime privileges passed in disposable CI. Paystack test confirmation, receipts, reconciliation/refunds and live rollout remain later gates.
+
+## Phase report
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Build | PASS | `npm run build`, local and GitHub Ubuntu/Node 24 |
+| TypeScript | PASS | `npm run typecheck`, local and CI |
+| Lint | PASS | `npm run lint`, no warnings |
+| Unit tests | PASS | `npm test`: six tests, zero failures |
+| Real PostgreSQL/HTTP | PASS | `npm run test:integration`: 32 tests, zero failures; PostgreSQL 17, real staff sessions and restricted runtime role |
+| Production simulation guard | PASS | Actual production HTTP server denied both checkout and simulated confirmation with demo flag enabled |
+| G3 visual/pitch | PENDING | Supported browser walkthrough and owner feedback not available in this environment |
+
+Meaningful modules: `prisma/schema.prisma` and migration `20261014070000_guest_checkout`; `src/features/inventory/stock.ts`; `src/features/orders/{service,access,validation}.ts`; `src/server/{mutations,customer-route}.ts`; cart/checkout/order-status/admin-order components and their protected routes; `scripts/grant-phase3.sql`; `tests/integration/checkout.test.ts`. The dependency lockfile and generated image assets are unchanged. This evidence checkpoint changes documentation only, preserving the tested application.

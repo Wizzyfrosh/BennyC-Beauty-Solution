@@ -8,7 +8,7 @@ Phase 1 application code has been implemented against the complete specification
 | --- | --- | --- |
 | G1 — Foundation, catalogue, staff | **PENDING verification** | Build/typecheck/lint, 2 unit tests and 10 real PostgreSQL/auth integration tests passed. Phone/desktop browser review is pending. |
 | G2 — Catalogue operations/inventory | PENDING verification | Phase 2 code implemented; local build/typecheck/lint and 4 unit tests pass. PostgreSQL suite passed on f264eaf: 20 integration tests including stock races/retries, permissions and upload validation. Configured Cloudinary upload and browser review remain pending. |
-| G3 — Customer orders/pitch demo | PENDING verification | Phase 3 code implemented; six unit tests pass. Final PostgreSQL and browser/pitch checks pending. |
+| G3 — Customer orders/pitch demo | PENDING verification | Phase 3 code implemented; build/typecheck/lint, six unit and 32 PostgreSQL integration tests pass on 6469d4e. Browser/pitch checks remain pending. |
 | G4 — Payments/order handling | PENDING | Not implemented; no payment credentials used |
 | G5 — Launch/operating readiness | PENDING | No production launch authorized or performed |
 
@@ -68,4 +68,14 @@ Final Phase 2 application evidence: https://github.com/Wizzyfrosh/BennyC-Beauty-
 
 ## Phase 3 progress — 14 October 2026
 
-FR08–FR10, FR12 and protected FR13 are implemented for a development-only sample store. Cart/server quote, approved delivery matching, expiring FEFO holds, shared allocation-aware stock, server-side refresh drafts, private scoped order access, staff queue and one-time pickup/dispatch consumption are added. See IMPLEMENTATION_PHASE_03.md. Six unit tests pass; final real PostgreSQL CI and phone/desktop/keyboard pitch checks are pending at this checkpoint. No real provider payment, production database or public deployment is enabled.
+FR08–FR10, FR12 and protected FR13 are implemented for a development-only sample store. Cart/server quote, approved delivery matching, expiring FEFO holds, shared allocation-aware stock, server-side refresh drafts, private scoped order access, staff queue and one-time pickup/dispatch consumption are added. See IMPLEMENTATION_PHASE_03.md. Build/typecheck/lint, six unit tests and all 32 real PostgreSQL/auth/stock/order integration tests pass on 6469d4e. Phone/desktop/keyboard pitch checks remain pending. No real provider payment, production database or public deployment is enabled.
+
+## Verified Phase 3 CI evidence
+
+Application revision: `6469d4eb84ed66dfe97a70e7c69b8ea217e932cb`; source tree: `5bdbe566670307d71acaae5ffa76000fa0f4579b`. CI run: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38523038561, job 115716908444. All checks passed: build/typecheck/lint, six unit tests, all three migrations, separate runtime grants, repeatable seed and 32 integration tests with zero failures. The tree uploaded through the GitHub connection exactly matched the tested local Git tree.
+
+TC10/11 passed final-unit contention, atomic mixed baskets, concurrent idempotent retry, hold expiry without cleanup, stale/malicious prices and approved delivery fees. TC12 passed failed/successful simulation, committed stock without physical deduction, one pickup/dispatch deduction, completion without duplicate movement, expired paid-batch blocking, unpaid transition denial and cancellation without resurrection. TC13 passed guessed/cross-order/guest-only access denial, single-use link exchange, expired/revoked token denial and safe refresh-intent recovery. TR04/06 passed composite allocation SKU ownership, positive quantity constraints, immutable order snapshots and denied runtime draft rewrites/token deletion. An actual production-mode HTTP server rejected checkout and simulation with the demo flag enabled; no order became paid. It ran only against the disposable CI database, with an HTTPS origin configured as a reverse-proxy fixture.
+
+First Phase 3 run 38522753834 failed because new fixture SKUs contained lowercase UUID characters. The existing normalized-SKU constraint correctly rejected them. The fixture was corrected; no validation or database rule was weakened. The earlier 20 regression tests continued to pass in that run.
+
+G1/G2/G3 remain PENDING their outstanding phone/desktop/keyboard/media/pitch evidence; backend tests do not establish exact screenshot fidelity. No live provider payment, production data, paid resource or public website deployment was used. Next concrete task: complete the 360 px, 768 px and desktop/keyboard pitch walkthrough in a supported browser, verify a configured Cloudinary upload, then implement Phase 4 Paystack test confirmation/reconciliation and receipt outbox with private development configuration.
