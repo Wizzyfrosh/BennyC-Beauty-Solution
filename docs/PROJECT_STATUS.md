@@ -7,7 +7,7 @@ Phase 1 application code has been implemented against the complete specification
 | Gate | Status | Evidence/blocker |
 | --- | --- | --- |
 | G1 — Foundation, catalogue, staff | **PENDING verification** | Build/typecheck/lint, 2 unit tests and 10 real PostgreSQL/auth integration tests passed. Phone/desktop browser review is pending. |
-| G2 — Catalogue operations/inventory | PENDING verification | Phase 2 code implemented; local build/typecheck/lint and 4 unit tests pass. PostgreSQL suite passed on 1d6b4db: 19 integration tests including stock races/retries and permission checks. Configured Cloudinary upload and browser review remain pending. |
+| G2 — Catalogue operations/inventory | PENDING verification | Phase 2 code implemented; local build/typecheck/lint and 4 unit tests pass. PostgreSQL suite passed on f264eaf: 20 integration tests including stock races/retries, permissions and upload validation. Configured Cloudinary upload and browser review remain pending. |
 | G3 — Customer orders/pitch demo | PENDING | Not implemented; follows G2 |
 | G4 — Payments/order handling | PENDING | Not implemented; no payment credentials used |
 | G5 — Launch/operating readiness | PENDING | No production launch authorized or performed |
@@ -60,6 +60,8 @@ The uploaded Git source tree and all three image blob hashes were verified again
 
 ## Phase 2 progress — 14 October 2026
 
-The user explicitly authorized continuing development. Catalogue editing, signed image upload code, receiving, batch/quarantine/expiry tracking, owner adjustments, movement/audit history and atomic counter/WhatsApp sales are implemented. See IMPLEMENTATION_PHASE_02.md. Code saved on the same review branch. GitHub CI passed on 1d6b4dbc0de01ff5917bc30a74b819028123ee92: 4 unit and 19 real PostgreSQL/auth/inventory integration tests. A final upload retry validation test is being verified. Phone/desktop review remains pending, and Cloudinary credentials were not requested in chat or provisioned. No live payment or public deployment occurred.
+The user explicitly authorized continuing development. Catalogue editing, signed image upload code, receiving, batch/quarantine/expiry tracking, owner adjustments, movement/audit history and atomic counter/WhatsApp sales are implemented. See IMPLEMENTATION_PHASE_02.md. Code saved on the same review branch. GitHub CI passed on 1d6b4dbc0de01ff5917bc30a74b819028123ee92: 4 unit and 19 real PostgreSQL/auth/inventory integration tests. Final code revision f264eafb3c0c97bef425f0365b592d314c5df40b passed all 20 integration tests. Phone/desktop review remains pending, and Cloudinary credentials were not requested in chat or provisioned. No live payment or public deployment occurred.
 
 Phase 2 CI evidence: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38518970667. Both migrations applied, seed repeated, final-unit race and full-basket rollback passed. FEFO/variant separation, receipt/sale retry safety, expiry/quarantine, owner-only costs/adjustments, snapshot retention and append-only history passed.
+
+Final Phase 2 application evidence: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38519500510. Build/typecheck/lint, 4 unit tests and 20 integration tests passed with zero failures. The added valid-image test confirms a missing Cloudinary configuration returns 503 without creating an image record, and malformed retry keys are rejected before provider work. Real Cloudinary operation, visual/keyboard review, and production setup remain pending.

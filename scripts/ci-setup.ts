@@ -31,9 +31,13 @@ try {
   await client.query(phase2);
   url.username = "bennyc_ci_runtime";
   url.password = password;
+  const authSecret = randomBytes(32).toString("base64url");
+  console.log(`::add-mask::${password}`);
+  console.log(`::add-mask::${url.toString()}`);
+  console.log(`::add-mask::${authSecret}`);
   await appendFile(
     process.env.GITHUB_ENV,
-    `DATABASE_URL=${url.toString()}\nBETTER_AUTH_SECRET=${randomBytes(32).toString("base64url")}\n`,
+    `DATABASE_URL=${url.toString()}\nBETTER_AUTH_SECRET=${authSecret}\n`,
   );
   console.log(
     "Configured isolated test runtime role and session secret without displaying credentials.",
