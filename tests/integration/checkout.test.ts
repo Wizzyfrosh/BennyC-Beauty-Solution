@@ -10,7 +10,8 @@ if (
   process.env.SEED_DATABASE_NAME !== "bennyc_ci"
 )
   throw Error("Disposable database required");
-const db = createPrismaClient(direct),
+const appDb = createPrismaClient(process.env.DATABASE_URL!),
+  db = createPrismaClient(direct),
   base = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 let owner = "",
   staff = "",
@@ -72,7 +73,7 @@ async function fixture(qty = 3) {
       expiryRequired: true,
       variants: {
         create: {
-          sku: `CI-${id}`,
+          sku: `CI-${id.toUpperCase()}`,
           optionValues: { size: "10ml" },
           optionFingerprint: `size:10ml`,
           priceKobo: 100000,
@@ -166,6 +167,7 @@ after(async () => {
     data: { active: false },
   });
   await db.$disconnect();
+  await appDb.$disconnect();
 });
 test("TC10/11 final-unit checkout contention reserves exactly once without physical deduction", async () => {
   const { v, batch } = await fixture(1),
@@ -719,4 +721,58 @@ test("TC12 actual production HTTP routes reject demo checkout and simulation eve
   } finally {
     server.kill("SIGTERM");
   }
+});
+test("TR04/06 database enforces allocation SKU ownership, positive units, immutable snapshots and restricted draft writes", async () => {
+  const { v } = await fixture(2),
+    other = await fixture(1),
+    g = await guest(),
+    { result } = await reserve(v.id, g);
+  assert.equal(result.status, 200);
+  const item = await db.orderItem.findFirstOrThrow({
+    where: { orderId: result.data.orderId },
+  });
+  await assert.rejects(
+    db.stockAllocation.create({
+      data: {
+        orderItemId: item.id,
+        variantId: v.id,
+        batchId: other.batch.id,
+        quantity: 1,
+        state: "HELD",
+        expiresAt: new Date("2099-01-01"),
+      },
+    }),
+    /foreign key|constraint/i,
+  );
+  await assert.rejects(
+    db.stockAllocation.create({
+      data: {
+        orderItemId: item.id,
+        variantId: v.id,
+        batchId: (
+          await db.stockBatch.findFirstOrThrow({ where: { variantId: v.id } })
+        ).id,
+        quantity: 0,
+        state: "RELEASED",
+      },
+    }),
+    /constraint/i,
+  );
+  await assert.rejects(
+    db.order.update({
+      where: { id: result.data.orderId },
+      data: { customerName: "Rewritten snapshot" },
+    }),
+    /immutable|42501/i,
+  );
+  await assert.rejects(
+    appDb.checkoutIntent.updateMany({ data: { request: { modified: true } } }),
+    /permission denied|42501/i,
+  );
+  await assert.rejects(
+    appDb.orderAccessToken.deleteMany({
+      where: { orderId: result.data.orderId },
+    }),
+    /permission denied|42501/i,
+  );
 });

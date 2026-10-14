@@ -131,6 +131,7 @@ export async function orderCredential(id: string) {
   return digest(raw);
 }
 export async function authorizeOrder(tx: Tx, id: string, hash: string) {
+  await tx.$queryRaw`SELECT id FROM public.order_access_tokens WHERE token_hash=${hash} FOR SHARE`;
   const token = await tx.orderAccessToken.findUnique({
     where: { tokenHash: hash },
   });
