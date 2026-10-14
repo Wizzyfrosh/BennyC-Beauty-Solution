@@ -39,6 +39,12 @@ export function CartPage() {
       <p>
         Prices shown here are estimates. Checkout rechecks prices and stock.
       </p>
+      {!cart.persistent && (
+        <p className="notice" role="status">
+          Your browser cannot save this bag. It stays in this tab only and will
+          be lost if you refresh or close it.
+        </p>
+      )}
       {cart.items.length ? (
         <>
           <div className="cart-lines">
@@ -50,7 +56,7 @@ export function CartPage() {
                   <strong>{formatNaira(item.priceKobo)}</strong>
                 </div>
                 <label>
-                  Quantity
+                  Quantity for {item.name}, {item.label}
                   <input
                     type="number"
                     min={1}
@@ -65,6 +71,7 @@ export function CartPage() {
                 </label>
                 <button
                   className="text-link"
+                  aria-label={`Remove ${item.name}, ${item.label} from your bag`}
                   onClick={() => cart.setQuantity(item.variantId, 0)}
                 >
                   Remove

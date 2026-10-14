@@ -77,6 +77,7 @@ svg {
 a,
 button,
 input,
+textarea,
 select,
 summary {
   outline-offset: 5px;
@@ -84,6 +85,7 @@ summary {
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
+textarea:focus-visible,
 select:focus-visible,
 summary:focus-visible {
   outline: 3px solid var(--focus);

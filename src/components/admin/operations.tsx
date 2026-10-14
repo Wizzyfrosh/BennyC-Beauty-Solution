@@ -28,9 +28,21 @@ export function OperationsWorkspace() {
     [error, setError] = useState("");
   const op = useOperation();
   async function load() {
-    const r = await fetch("/api/admin/operations", { cache: "no-store" });
-    if (!r.ok) throw Error("Operations could not load.");
-    setData(await r.json());
+    try {
+      const r = await fetch("/api/admin/operations", { cache: "no-store" });
+      if (!r.ok)
+        throw Error(
+          "Operations could not refresh. The previous snapshot is still shown.",
+        );
+      setData(await r.json());
+      setError("");
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Operations could not refresh. Retry later.",
+      );
+    }
   }
   useEffect(() => {
     void fetch("/api/admin/operations", { cache: "no-store" })
@@ -52,16 +64,19 @@ export function OperationsWorkspace() {
             approve a launch or prove that business information is verified.
           </p>
         </div>
-        <button
-          className="text-link"
-          onClick={() => load().catch((e) => setError(e.message))}
-        >
+        <button className="text-link" onClick={() => void load()}>
           Refresh
         </button>
       </div>
+      {data && error && <p role="alert">{error}</p>}
       {data ? (
         <>
           <p className="notice">
+            Snapshot{" "}
+            {new Date(data.snapshotAt).toLocaleString("en-NG", {
+              timeZone: "Africa/Lagos",
+            })}{" "}
+            (Lagos).{" "}
             {data.demoStore ? "Demonstration store" : "Real-data store"} · Live
             online payments remain disabled. Real
             merchant/browser/media/operator evidence remains pending.
@@ -160,7 +175,9 @@ export function OperationsWorkspace() {
           </section>
         </>
       ) : (
-        <p role="status">{error || "Loading observed operating state…"}</p>
+        <p role={error ? "alert" : "status"}>
+          {error || "Loading observed operating state…"}
+        </p>
       )}
     </>
   );

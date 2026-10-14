@@ -2,45 +2,13 @@
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { useSyncExternalStore } from "react";
-import { z } from "zod";
-export type CartItem = {
-  variantId: string;
-  quantity: number;
-  name: string;
-  label: string;
-  priceKobo: number;
-};
-const schema = z
-  .array(
-    z.strictObject({
-      variantId: z.uuid(),
-      quantity: z.number().int().min(1).max(10000),
-      name: z.string().max(160),
-      label: z.string().max(250),
-      priceKobo: z.number().int().min(1).max(2000000000),
-    }),
-  )
-  .max(20)
-  .refine((v) => new Set(v.map((x) => x.variantId)).size === v.length);
-const empty: CartItem[] = [];
-let cached: CartItem[] = empty,
-  serialized: string | null = null;
+import {
+  createCartStore,
+  emptyCartSnapshot,
+  type CartItem,
+} from "@/lib/cart-store";
+const store = createCartStore(() => localStorage);
 const listeners = new Set<() => void>();
-function snapshot() {
-  try {
-    const raw = localStorage.getItem("bennyc_cart_v1");
-    if (raw !== serialized) {
-      serialized = raw;
-      const parsed = schema.safeParse(
-        raw && raw.length < 30000 ? JSON.parse(raw) : [],
-      );
-      cached = parsed.success ? parsed.data : empty;
-    }
-  } catch {
-    cached = empty;
-  }
-  return cached;
-}
 function subscribe(fn: () => void) {
   listeners.add(fn);
   window.addEventListener("storage", fn);
@@ -50,20 +18,19 @@ function subscribe(fn: () => void) {
   };
 }
 function write(items: CartItem[]) {
-  const valid = schema.parse(items);
-  cached = valid;
-  serialized = JSON.stringify(valid);
-  try {
-    localStorage.setItem("bennyc_cart_v1", serialized);
-  } catch {}
+  store.write(items);
   listeners.forEach((fn) => fn());
 }
 export function useCart() {
-  const items = useSyncExternalStore(subscribe, snapshot, () => empty);
+  const state = useSyncExternalStore(
+    subscribe,
+    store.snapshot,
+    () => emptyCartSnapshot,
+  );
   return {
-    items,
+    ...state,
     add(item: CartItem) {
-      const current = snapshot(),
+      const current = store.snapshot().items,
         old = current.find((x) => x.variantId === item.variantId);
       write(
         old
@@ -80,9 +47,15 @@ export function useCart() {
     },
     setQuantity(id: string, quantity: number) {
       write(
-        snapshot().flatMap((x) =>
-          x.variantId === id ? (quantity > 0 ? [{ ...x, quantity }] : []) : [x],
-        ),
+        store
+          .snapshot()
+          .items.flatMap((x) =>
+            x.variantId === id
+              ? quantity > 0
+                ? [{ ...x, quantity }]
+                : []
+              : [x],
+          ),
       );
     },
     clear() {

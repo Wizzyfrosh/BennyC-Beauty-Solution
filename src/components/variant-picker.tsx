@@ -83,6 +83,12 @@ export function VariantPicker({
             Add to bag
           </button>
           <p role="status">{message}</p>
+          {!cart.persistent && (
+            <p role="status">
+              Your bag is kept in this tab only. Refreshing or closing it will
+              lose the items.
+            </p>
+          )}
         </div>
       )}
       <p className="sku-note">SKU: {selected.sku}</p>
