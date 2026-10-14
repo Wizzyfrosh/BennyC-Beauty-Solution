@@ -51,7 +51,9 @@ jobs:
         run: |
           npm run dev -- --hostname 127.0.0.1 > /tmp/bennyc-ci-server.log 2>&1 &
           SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          node --import tsx scripts/provider-fixture.ts > /tmp/bennyc-ci-provider.log 2>&1 &
+          PROVIDER_PID=$!
+          trap 'kill "$SERVER_PID" "$PROVIDER_PID" 2>/dev/null || true' EXIT
           for attempt in $(seq 1 60); do
             if curl --silent --fail http://localhost:3000/preview > /dev/null; then break; fi
             sleep 1

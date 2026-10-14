@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { PaymentControls } from "./payment-controls";
 import { useRouter } from "next/navigation";
 import { formatNaira } from "@/lib/money";
 import { useOperation } from "./admin/request";
@@ -13,6 +14,7 @@ export type OrderView = {
   fulfilmentStatus: string;
   fulfilmentMethod: string;
   isDemo: boolean;
+  needsAttention?: boolean;
   holdExpiresAt: string | null;
   serverTime?: string;
   customerName?: string;
@@ -31,7 +33,15 @@ export type OrderView = {
     lineTotalKobo: number;
   }[];
 };
-export function OrderStatus({ id, enabled }: { id: string; enabled: boolean }) {
+export function OrderStatus({
+  id,
+  enabled,
+  providerEnabled = false,
+}: {
+  id: string;
+  enabled: boolean;
+  providerEnabled?: boolean;
+}) {
   const [order, setOrder] = useState<OrderView | null>(null),
     [error, setError] = useState(""),
     [link, setLink] = useState("");
@@ -83,6 +93,12 @@ export function OrderStatus({ id, enabled }: { id: string; enabled: boolean }) {
           Demonstration order · Payment simulation does not transfer money.
         </p>
       )}
+      {order.needsAttention && (
+        <p className="notice" role="status">
+          Your payment is recorded. Staff must review this order before
+          fulfilment. Contact the shop for assistance.
+        </p>
+      )}
       <div className="workspace-form">
         <p>
           Payment: <strong>{order.paymentStatus}</strong>
@@ -112,6 +128,17 @@ export function OrderStatus({ id, enabled }: { id: string; enabled: boolean }) {
           </p>
         )}
       </div>
+      {providerEnabled && (
+        <PaymentControls
+          id={id}
+          pending={
+            order.paymentStatus === "PENDING" ||
+            !!["PAID", "REFUNDED", "PARTIALLY_REFUNDED"].includes(
+              order.paymentStatus,
+            )
+          }
+        />
+      )}
       {enabled && order.isDemo && unpaid && (
         <div className="workspace-form">
           <h2>Try a demo payment</h2>
@@ -179,6 +206,9 @@ export function OrderStatus({ id, enabled }: { id: string; enabled: boolean }) {
         </p>
       )}
       {(error || op.message) && <p role="alert">{error || op.message}</p>}
+      <p>
+        <Link href={`/orders/${id}/receipt`}>View private receipt</Link>
+      </p>
       <p>
         <Link href="/shop">Continue browsing</Link>
       </p>

@@ -695,6 +695,11 @@ test("TC12 actual production HTTP routes reject demo checkout and simulation eve
     for (const [path, body, cookie] of [
       ["/api/checkout", input, g],
       [
+        `/api/orders/${result.data.orderId}/payments/initialize`,
+        {},
+        result.cookie,
+      ],
+      [
         `/api/orders/${result.data.orderId}/simulate-payment`,
         { outcome: "success" },
         result.cookie,
@@ -711,7 +716,12 @@ test("TC12 actual production HTTP routes reject demo checkout and simulation eve
         body: JSON.stringify(body),
       });
       assert.equal(r.status, 503);
-      assert.equal((await r.json()).error.code, "CHECKOUT_NOT_OPEN");
+      assert.equal(
+        (await r.json()).error.code,
+        path.endsWith("payments/initialize")
+          ? "PAYMENT_NOT_CONFIGURED"
+          : "CHECKOUT_NOT_OPEN",
+      );
     }
     assert.equal(
       (await db.order.findUniqueOrThrow({ where: { id: result.data.orderId } }))

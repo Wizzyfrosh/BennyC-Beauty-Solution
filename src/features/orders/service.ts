@@ -1,4 +1,6 @@
 import "server-only";
+import { queueReceipt } from "@/features/payments/outbox";
+import { applySuccessfulPayment } from "@/features/payments/confirmation";
 import { demoCheckoutEnabled } from "./demo";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
@@ -288,7 +290,7 @@ export async function checkout(
     },
   );
 }
-async function lockOrderStock(tx: Tx, id: string) {
+export async function lockOrderStock(tx: Tx, id: string) {
   const initial = await tx.order.findUnique({
     where: { id },
     select: { items: { select: { variantId: true } } },
@@ -349,44 +351,6 @@ export async function simulatePayment(
           "HOLD_EXPIRED",
           "This reservation expired or was cancelled. Start a new checkout.",
         );
-      const allocations = order.items.flatMap((i) => i.allocations);
-      if (input.outcome === "success") {
-        const today = await businessDate(tx);
-        for (const item of order.items) {
-          const held = item.allocations.filter(
-            (a) => a.state === "HELD" && a.expiresAt && a.expiresAt > now,
-          );
-          if (held.reduce((s, a) => s + a.quantity, 0) !== item.quantity)
-            throw new DomainError(
-              409,
-              "ALLOCATION_UNAVAILABLE",
-              "The reservation can no longer be confirmed.",
-            );
-          for (const a of held) {
-            const b = batches.find((b) => b.id === a.batchId)!,
-              v = variants.find((v) => v.id === item.variantId)!;
-            if (
-              eligibleBatch(b, today, v.product.expiryRequired) <
-              b.held + b.committed
-            )
-              throw new DomainError(
-                409,
-                "ALLOCATION_UNAVAILABLE",
-                "Reserved stock needs staff review.",
-              );
-          }
-        }
-        await tx.stockAllocation.updateMany({
-          where: {
-            id: {
-              in: allocations
-                .filter((a) => a.state === "HELD")
-                .map((a) => a.id),
-            },
-          },
-          data: { state: "COMMITTED" },
-        });
-      }
       const payment = await tx.paymentAttempt.create({
         data: {
           orderId: id,
@@ -400,15 +364,25 @@ export async function simulatePayment(
         },
       });
       const status = input.outcome === "success" ? "PAID" : "FAILED";
-      await tx.order.update({
-        where: { id },
-        data: {
-          paymentStatus: status,
-          ...(status === "PAID"
-            ? { confirmedPaymentAttemptId: payment.id, paidAt: now }
-            : {}),
-        },
-      });
+      if (status === "PAID") {
+        const result = await applySuccessfulPayment(
+          tx,
+          { order, variants, batches },
+          payment.id,
+          op,
+          false,
+        );
+        if (result.outcome === "paid_exception")
+          throw new DomainError(
+            409,
+            "ALLOCATION_UNAVAILABLE",
+            "Reserved stock needs review.",
+          );
+      } else
+        await tx.order.update({
+          where: { id },
+          data: { paymentStatus: "FAILED" },
+        });
       await guestAudit(tx, op, "payment.simulated", id, {
         outcome: input.outcome,
         isDemo: true,
@@ -574,6 +548,7 @@ export async function transitionOrder(
             : {}),
         },
       });
+      await queueReceipt(tx, id, `fulfilment:${id}:${input.target}`);
       await audit(tx, actor, op, "order.fulfilment", "order", id, {
         from: order.fulfilmentStatus,
         to: input.target,
@@ -612,10 +587,15 @@ export async function customerOrder(id: string, hash: string) {
     await authorizeOrder(tx, id, hash);
     const order = await tx.order.findUnique({
       where: { id },
-      select: customerSelect,
+      select: { ...customerSelect, exceptionCode: true },
     });
     if (!order) throw inaccessible();
-    return { ...order, serverTime: (await databaseNow(tx)).toISOString() };
+    const { exceptionCode, ...publicOrder } = order;
+    return {
+      ...publicOrder,
+      needsAttention: exceptionCode !== null,
+      serverTime: (await databaseNow(tx)).toISOString(),
+    };
   });
 }
 export async function orderQueue() {

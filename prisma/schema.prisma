@@ -217,12 +217,13 @@ enum ExpiryPrecision {
 }
 
 enum MovementType {
-  RECEIPT          @map("receipt")
-  HANDOFF          @map("handoff")
-  COUNT_ADJUSTMENT @map("count_adjustment")
-  QUARANTINE       @map("quarantine")
-  RELEASE          @map("release")
-  WRITE_OFF        @map("write_off")
+  RECEIPT           @map("receipt")
+  HANDOFF           @map("handoff")
+  COUNT_ADJUSTMENT  @map("count_adjustment")
+  QUARANTINE        @map("quarantine")
+  RELEASE           @map("release")
+  WRITE_OFF         @map("write_off")
+  RETURN_QUARANTINE @map("return_quarantine")
 }
 
 enum OperationState {
@@ -367,40 +368,42 @@ model AuditEvent {
 }
 
 model Order {
-  guestSessionId            String?            @map("guest_session_id") @db.Uuid
-  guestSession              GuestSession?      @relation(fields: [guestSessionId], references: [id], onDelete: Restrict)
-  customerName              String?            @map("customer_name") @db.VarChar(120)
-  customerEmail             String?            @map("customer_email") @db.VarChar(254)
-  customerPhone             String?            @map("customer_phone") @db.VarChar(20)
-  addressSnapshot           Json?              @map("address_snapshot")
-  deliveryZoneId            String?            @map("delivery_zone_id") @db.Uuid
-  deliveryZone              DeliveryZone?      @relation(fields: [deliveryZoneId], references: [id], onDelete: Restrict)
-  holdExpiresAt             DateTime?          @map("hold_expires_at") @db.Timestamptz
-  exceptionCode             String?            @map("exception_code")
+  notifications             NotificationOutbox[]
+  receipt                   Receipt?
+  guestSessionId            String?              @map("guest_session_id") @db.Uuid
+  guestSession              GuestSession?        @relation(fields: [guestSessionId], references: [id], onDelete: Restrict)
+  customerName              String?              @map("customer_name") @db.VarChar(120)
+  customerEmail             String?              @map("customer_email") @db.VarChar(254)
+  customerPhone             String?              @map("customer_phone") @db.VarChar(20)
+  addressSnapshot           Json?                @map("address_snapshot")
+  deliveryZoneId            String?              @map("delivery_zone_id") @db.Uuid
+  deliveryZone              DeliveryZone?        @relation(fields: [deliveryZoneId], references: [id], onDelete: Restrict)
+  holdExpiresAt             DateTime?            @map("hold_expires_at") @db.Timestamptz
+  exceptionCode             String?              @map("exception_code")
   accessTokens              OrderAccessToken[]
-  id                        String             @id @default(uuid()) @db.Uuid
-  orderNumber               String             @unique @map("order_number")
+  id                        String               @id @default(uuid()) @db.Uuid
+  orderNumber               String               @unique @map("order_number")
   channel                   OrderChannel
-  currency                  String             @default("NGN")
-  fulfilmentMethod          String             @default("pickup") @map("fulfilment_method")
-  subtotalKobo              Int                @map("subtotal_kobo")
-  deliveryFeeKobo           Int                @default(0) @map("delivery_fee_kobo")
-  taxKobo                   Int                @default(0) @map("tax_kobo")
-  totalKobo                 Int                @map("total_kobo")
-  paymentStatus             PaymentStatus      @default(UNPAID) @map("payment_status")
-  fulfilmentStatus          FulfilmentStatus   @default(UNFULFILLED) @map("fulfilment_status")
-  confirmedPaymentAttemptId String?            @unique @map("confirmed_payment_attempt_id") @db.Uuid
-  confirmedPayment          PaymentAttempt?    @relation("ConfirmedPayment", fields: [confirmedPaymentAttemptId], references: [id], onDelete: Restrict)
-  paymentAttempts           PaymentAttempt[]   @relation("OrderAttempts")
-  actorUserId               String?            @map("actor_user_id")
-  actor                     User?              @relation("OrderActor", fields: [actorUserId], references: [id], onDelete: Restrict)
-  operationId               String             @unique @map("operation_id") @db.Uuid
-  operation                 IdempotencyRequest @relation(fields: [operationId], references: [id], onDelete: Restrict)
+  currency                  String               @default("NGN")
+  fulfilmentMethod          String               @default("pickup") @map("fulfilment_method")
+  subtotalKobo              Int                  @map("subtotal_kobo")
+  deliveryFeeKobo           Int                  @default(0) @map("delivery_fee_kobo")
+  taxKobo                   Int                  @default(0) @map("tax_kobo")
+  totalKobo                 Int                  @map("total_kobo")
+  paymentStatus             PaymentStatus        @default(UNPAID) @map("payment_status")
+  fulfilmentStatus          FulfilmentStatus     @default(UNFULFILLED) @map("fulfilment_status")
+  confirmedPaymentAttemptId String?              @unique @map("confirmed_payment_attempt_id") @db.Uuid
+  confirmedPayment          PaymentAttempt?      @relation("ConfirmedPayment", fields: [confirmedPaymentAttemptId], references: [id], onDelete: Restrict)
+  paymentAttempts           PaymentAttempt[]     @relation("OrderAttempts")
+  actorUserId               String?              @map("actor_user_id")
+  actor                     User?                @relation("OrderActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+  operationId               String               @unique @map("operation_id") @db.Uuid
+  operation                 IdempotencyRequest   @relation(fields: [operationId], references: [id], onDelete: Restrict)
   items                     OrderItem[]
-  isDemo                    Boolean            @default(false) @map("is_demo")
-  createdAt                 DateTime           @default(now()) @map("created_at") @db.Timestamptz
-  paidAt                    DateTime?          @map("paid_at") @db.Timestamptz
-  completedAt               DateTime?          @map("completed_at") @db.Timestamptz
+  isDemo                    Boolean              @default(false) @map("is_demo")
+  createdAt                 DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  paidAt                    DateTime?            @map("paid_at") @db.Timestamptz
+  completedAt               DateTime?            @map("completed_at") @db.Timestamptz
 
   @@index([createdAt, channel])
   @@map("orders")
@@ -427,20 +430,25 @@ model OrderItem {
 }
 
 model PaymentAttempt {
-  id                 String          @id @default(uuid()) @db.Uuid
-  orderId            String          @map("order_id") @db.Uuid
-  order              Order           @relation("OrderAttempts", fields: [orderId], references: [id], onDelete: Restrict)
-  confirmedOrder     Order?          @relation("ConfirmedPayment")
-  provider           PaymentProvider
-  paymentMode        PaymentMode     @map("payment_mode")
-  method             String          @db.VarChar(30)
-  providerReference  String?         @map("provider_reference") @db.VarChar(150)
-  amountKobo         Int             @map("amount_kobo")
-  currency           String          @default("NGN")
-  status             AttemptStatus
-  verificationMethod String          @map("verification_method")
-  verifiedAt         DateTime?       @map("verified_at") @db.Timestamptz
-  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  authorizationUrl      String?         @map("authorization_url")
+  initLeaseUntil        DateTime?       @map("init_lease_until") @db.Timestamptz
+  providerTransactionId String?         @map("provider_transaction_id")
+  lastCheckedAt         DateTime?       @map("last_checked_at") @db.Timestamptz
+  refunds               Refund[]
+  id                    String          @id @default(uuid()) @db.Uuid
+  orderId               String          @map("order_id") @db.Uuid
+  order                 Order           @relation("OrderAttempts", fields: [orderId], references: [id], onDelete: Restrict)
+  confirmedOrder        Order?          @relation("ConfirmedPayment")
+  provider              PaymentProvider
+  paymentMode           PaymentMode     @map("payment_mode")
+  method                String          @db.VarChar(30)
+  providerReference     String?         @map("provider_reference") @db.VarChar(150)
+  amountKobo            Int             @map("amount_kobo")
+  currency              String          @default("NGN")
+  status                AttemptStatus
+  verificationMethod    String          @map("verification_method")
+  verifiedAt            DateTime?       @map("verified_at") @db.Timestamptz
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz
 
   @@unique([provider, providerReference])
   @@unique([id, orderId])
@@ -523,4 +531,61 @@ model CheckoutIntent {
 
   @@index([guestSessionId])
   @@map("checkout_intents")
+}
+
+model PaymentEvent {
+  id            String   @id @default(uuid()) @db.Uuid
+  eventKey      String   @unique @map("event_key")
+  provider      String
+  reference     String
+  eventType     String   @map("event_type")
+  payloadDigest String   @map("payload_digest") @db.VarChar(64)
+  fields        Json
+  result        String
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("payment_events")
+}
+
+model Refund {
+  id                String         @id @default(uuid()) @db.Uuid
+  paymentAttemptId  String         @map("payment_attempt_id") @db.Uuid
+  payment           PaymentAttempt @relation(fields: [paymentAttemptId], references: [id], onDelete: Restrict)
+  providerReference String?        @unique @map("provider_reference")
+  amountKobo        Int            @map("amount_kobo")
+  reason            String         @db.VarChar(500)
+  source            String
+  status            String         @default("REQUESTED")
+  requestedBy       String?        @map("requested_by")
+  operationId       String         @unique @map("operation_id") @db.Uuid
+  confirmedAt       DateTime?      @map("confirmed_at") @db.Timestamptz
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([paymentAttemptId, status])
+  @@map("refunds")
+}
+
+model NotificationOutbox {
+  id               String   @id @default(uuid()) @db.Uuid
+  orderId          String   @map("order_id") @db.Uuid
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  notificationType String   @map("notification_type")
+  dedupeKey        String   @unique @map("dedupe_key")
+  state            String   @default("QUEUED")
+  attemptCount     Int      @default(0) @map("attempt_count")
+  nextAttemptAt    DateTime @default(now()) @map("next_attempt_at") @db.Timestamptz
+  lastErrorCode    String?  @map("last_error_code")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([state, nextAttemptAt])
+  @@map("notification_outbox")
+}
+
+model Receipt {
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String   @unique @map("order_id") @db.Uuid
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("receipts")
 }

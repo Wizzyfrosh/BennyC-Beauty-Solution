@@ -2,7 +2,7 @@
 
 **Cosmetics & Makeup Venture** — a Next.js storefront and staff workspace.
 
-Phases 1–3 are implemented for review. The storefront follows the supplied teal beauty-store reference: botanical hero, pale-mint feature strip, circular categories, product cards and a product banner. All generated packaging, demo prices and sample products are explicitly illustrative. Real online ordering/provider payments remain closed; development-only guest checkout simulation is implemented. Staff inventory and completed shop/WhatsApp sales are implemented.
+Phases 1–4 code is implemented for review; the real provider test gate remains pending. The storefront follows the supplied teal beauty-store reference: botanical hero, pale-mint feature strip, circular categories, product cards and a product banner. All generated packaging, demo prices and sample products are explicitly illustrative. Real online ordering/provider payments remain closed; development-only guest checkout simulation is implemented. Staff inventory and completed shop/WhatsApp sales are implemented.
 
 ## Run the design preview
 
@@ -40,6 +40,7 @@ psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-runtime.sql
 ```bash
 psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase2.sql
 psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase3.sql
+psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase4.sql
 ```
 
 Phase 2 grants catalogue/balance/order writes used by server-authorized services, plus insert-only audit/movement history. The grant scripts do not grant application DDL, staff membership writes or history rewrites.
@@ -117,3 +118,7 @@ Signed product uploads require private Cloudinary environment configuration; see
 Set `BENNYC_DEMO_CHECKOUT=true` only in a dedicated development demo store, then run `npm run dev`. Production rejects simulation regardless of the flag. Receive sample stock before testing; no stock is invented by the seed. Live product pages offer a shopping bag, `/checkout` validates a fresh server quote and reserves stock, and `/orders/[id]` requires a private scoped cookie. Contact/address drafts stay on the server; tab storage contains only a draft reference for refresh recovery. `/preview` remains read-only.
 
 Staff use `/admin/orders` to prepare and hand over orders. Owners configure approved delivery areas/fees at `/admin/delivery`; unmatched addresses cannot checkout for delivery. Simulated success commits allocation, pickup/dispatch deducts physical stock once, and delivered completion does not deduct again. See [IMPLEMENTATION_PHASE_03.md](docs/IMPLEMENTATION_PHASE_03.md) for the walkthrough, limitations and gate evidence. No real online payment, receipt delivery, paid refund or public deployment is enabled.
+
+## Phase 4 development test payments
+
+Configure a private Paystack **test** key in the server environment and set `BENNYC_PAYSTACK_TEST=true` for a dedicated development demo store. Live keys and production payment processing are rejected. The private order page offers hosted test checkout/verification. Owners use `/admin/payments` for bounded reconciliation, queued in-app receipts, paid cancellation, verified dashboard refund evidence and quarantined physical returns. No email/SMS is sent and no real refund is initiated by the app. See [IMPLEMENTATION_PHASE_04.md](docs/IMPLEMENTATION_PHASE_04.md) for setup, exact boundaries and pending merchant/provider evidence. CI provider fixtures are fault tests, not real settlement evidence.

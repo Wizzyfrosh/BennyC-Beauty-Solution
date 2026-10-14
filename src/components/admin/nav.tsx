@@ -11,6 +11,15 @@ import {
 export function AdminNav({ owner }: { owner: boolean }) {
   const path = usePathname();
   const links = [
+    ...(owner
+      ? [
+          {
+            href: "/admin/payments",
+            label: "Payment resolution",
+            Icon: ShoppingBag,
+          },
+        ]
+      : []),
     { href: "/admin", label: "Overview", Icon: LayoutDashboard },
     ...(owner
       ? [{ href: "/admin/products", label: "Products", Icon: Package }]

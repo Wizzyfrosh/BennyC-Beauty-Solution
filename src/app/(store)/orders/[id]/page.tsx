@@ -11,6 +11,10 @@ export default async function Page({
   if (!z.uuid().safeParse(id).success) notFound();
   return (
     <OrderStatus
+      providerEnabled={
+        process.env.NODE_ENV !== "production" &&
+        process.env.BENNYC_PAYSTACK_TEST === "true"
+      }
       id={id}
       enabled={
         process.env.NODE_ENV !== "production" &&

@@ -9,7 +9,7 @@ Phase 1 application code has been implemented against the complete specification
 | G1 — Foundation, catalogue, staff | **PENDING verification** | Build/typecheck/lint, 2 unit tests and 10 real PostgreSQL/auth integration tests passed. Phone/desktop browser review is pending. |
 | G2 — Catalogue operations/inventory | PENDING verification | Phase 2 code implemented; local build/typecheck/lint and 4 unit tests pass. PostgreSQL suite passed on f264eaf: 20 integration tests including stock races/retries, permissions and upload validation. Configured Cloudinary upload and browser review remain pending. |
 | G3 — Customer orders/pitch demo | PENDING verification | Phase 3 code implemented; build/typecheck/lint, six unit and 32 PostgreSQL integration tests pass on 6469d4e. Browser/pitch checks remain pending. |
-| G4 — Payments/order handling | PENDING | Not implemented; no payment credentials used |
+| G4 — Payments/order handling | PENDING verification | Phase 4 test-provider code implemented; actual merchant test payment/notification integration and final CI evidence pending. No live credentials used. |
 | G5 — Launch/operating readiness | PENDING | No production launch authorized or performed |
 
 ## Implemented Phase 1 scope
@@ -79,3 +79,7 @@ TC10/11 passed final-unit contention, atomic mixed baskets, concurrent idempoten
 First Phase 3 run 38522753834 failed because new fixture SKUs contained lowercase UUID characters. The existing normalized-SKU constraint correctly rejected them. The fixture was corrected; no validation or database rule was weakened. The earlier 20 regression tests continued to pass in that run.
 
 G1/G2/G3 remain PENDING their outstanding phone/desktop/keyboard/media/pitch evidence; backend tests do not establish exact screenshot fidelity. No live provider payment, production data, paid resource or public website deployment was used. Next concrete task: complete the 360 px, 768 px and desktop/keyboard pitch walkthrough in a supported browser, verify a configured Cloudinary upload, then implement Phase 4 Paystack test confirmation/reconciliation and receipt outbox with private development configuration.
+
+## Phase 4 implementation — 14 October 2026
+
+FR11–FR14/TR03–TR06/TR08–TR09 test payment and resolution code is implemented with user authorization. See IMPLEMENTATION_PHASE_04.md. Eight unit tests pass; final build/typecheck/lint and expanded PostgreSQL fixture tests are being verified. Real Paystack merchant test credentials/transaction evidence remain pending. Private in-app receipts are implemented; external email/SMS notifications are not configured or sent. No live payment, production database, public deployment or actual refund initiation was performed.
