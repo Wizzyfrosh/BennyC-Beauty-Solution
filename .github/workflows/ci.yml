@@ -1,0 +1,66 @@
+name: Build and inventory checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          # Disposable, localhost-only CI fixture; never a deployed credential.
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bennyc_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/bennyc_ci
+      BETTER_AUTH_URL: http://localhost:3000
+      BENNYC_DEMO_DATA: "true"
+      BENNYC_DEMO_CHECKOUT: "true"
+      SEED_DATABASE_NAME: bennyc_ci
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run db:migrate
+      - run: node --import tsx scripts/ci-setup.ts
+      - run: npm run db:seed
+      - name: Check repeatable seed
+        run: npm run db:seed
+      - name: Test real sessions and PostgreSQL permissions
+        shell: bash
+        run: |
+          npm run dev -- --hostname 127.0.0.1 > /tmp/bennyc-ci-server.log 2>&1 &
+          SERVER_PID=$!
+          node --import tsx scripts/provider-fixture.ts > /tmp/bennyc-ci-provider.log 2>&1 &
+          PROVIDER_PID=$!
+          trap 'kill "$SERVER_PID" "$PROVIDER_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --silent --fail http://localhost:3000/preview > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:integration
+
+      - name: Rehearse PostgreSQL backup and restore on disposable copy
+        env:
+          CI_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: npm run test:restore
