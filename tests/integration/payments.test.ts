@@ -339,6 +339,8 @@ test("TC15 late success reallocates expired holds only when the full basket is a
       saved.items[0].allocations.filter((a) => a.state === "COMMITTED").length,
       consume ? 0 : 1,
     );
+    const limited = await verify(o);
+    assert.equal("exception" in limited.data, false);
     if (consume)
       assert.equal(
         (

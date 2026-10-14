@@ -281,7 +281,13 @@ export async function verifyOrderPayment(
       "PAYMENT_NOT_FOUND",
       "No test provider payment has been started for this order.",
     );
-  return verifyAttempt(attempt.id);
+  const result = await verifyAttempt(attempt.id);
+  return {
+    orderId: result.orderId,
+    paymentStatus: result.paymentStatus,
+    outcome: result.outcome,
+    needsAttention: result.outcome === "paid_exception",
+  };
 }
 export async function webhook(reference: string, payloadDigest: string) {
   const attempt = await getDb().paymentAttempt.findUnique({
