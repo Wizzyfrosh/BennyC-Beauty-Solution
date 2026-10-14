@@ -140,3 +140,7 @@ Test migration replay, public/staff denial cases, constraints, two final-unit bu
 ## Phase 1 implementation notes — 13 October 2026
 
 `prisma/schema.prisma` and the versioned SQL migration implement the Phase 1 subset only. Better Auth 1.7.7 generated the auth models, including `RateLimit` for persistent login throttling. Business timestamps use `timestamptz`; auth-generated timestamp mappings are retained. `Product.isDemo` and `StoreSettings.demoData` explicitly mark fixtures. `ImageProvider.LOCAL` and `demoTile` are restricted to local illustrative seed assets; CLOUDINARY remains the later upload provider. Product-image variant ownership uses a composite FK. Deferred publication triggers require an active variant at commit. Inventory, orders, costs, holds and payment tables are intentionally deferred to their planned phases.
+
+## Phase 2 implementation notes
+
+The second versioned migration adds batches/costs, idempotency, append-only stock/audit history, counter orders/items and manual payment records. Printed expiry precision is preserved separately from the optional date; month-only/unknown stock remains unavailable. A composite confirmed-payment/order FK enforces payment ownership. Manual demo records are explicitly marked and prohibited in production. A limited membership-lock function preserves runtime membership write denial. Provider/refund/hold/allocation tables remain in later phases; checkout must not be enabled until those are integrated into shared availability and stock services.

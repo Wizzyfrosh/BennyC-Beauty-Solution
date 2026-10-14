@@ -123,7 +123,12 @@ export function ProductsWorkspace() {
                 <td>
                   {p.variants.length
                     ? formatNaira(
-                        Math.min(...p.variants.map((v) => v.priceKobo)),
+                        Math.min(
+                          ...(p.variants.some((v) => v.active)
+                            ? p.variants.filter((v) => v.active)
+                            : p.variants
+                          ).map((v) => v.priceKobo),
+                        ),
                       )
                     : "—"}
                 </td>

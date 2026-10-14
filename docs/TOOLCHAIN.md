@@ -36,3 +36,7 @@ Prisma 7.10.0 is deliberately paired across CLI/client/driver. The registry late
 - https://github.com/actions/setup-node (v6 tag SHA verified with git ls-remote)
 
 The installed Better Auth sign-up implementation was inspected to confirm the supported hashPassword function and credential account ID/provider mapping used by trusted owner bootstrap. Runtime auth uses the maintained library, not a custom password/session protocol. Cloudinary and Paystack are reserved for later milestones; neither is connected. No Supabase dependency is present.
+
+## Phase 2 additions
+
+Cloudinary Node SDK 2.11.0 and sharp 0.35.5 were checked via their current package metadata and pinned in the existing lockfile. Official references: https://cloudinary.com/documentation/node_image_and_video_upload and https://sharp.pixelplumbing.com/api-input/. No additional backend, auth system or ORM was added. Real provider upload remains pending configuration.

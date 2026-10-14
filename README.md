@@ -2,7 +2,7 @@
 
 **Cosmetics & Makeup Venture** — a Next.js storefront and staff workspace.
 
-Phase 1 is implemented for review. The storefront follows the supplied teal beauty-store reference: botanical hero, pale-mint feature strip, circular categories, product cards and a product banner. All generated packaging, demo prices and sample products are explicitly illustrative. No payments, checkout or inventory operations are enabled yet.
+Phases 1 and 2 are implemented for review. The storefront follows the supplied teal beauty-store reference: botanical hero, pale-mint feature strip, circular categories, product cards and a product banner. All generated packaging, demo prices and sample products are explicitly illustrative. Online checkout/provider payments remain closed. Staff inventory and completed shop/WhatsApp sales are implemented.
 
 ## Run the design preview
 
@@ -35,7 +35,13 @@ npm run db:migrate
 psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-runtime.sql
 ```
 
-`psql` must receive the actual private migration connection from your terminal environment; it does not automatically load `.env`. On Windows, use your SQL client's query editor or the equivalent environment-variable syntax. The SQL file grants authentication lifecycle writes and read-only catalogue/membership access. It grants no application DDL or membership writes.
+`psql` must receive the actual private migration connection from your terminal environment; it does not automatically load `.env`. On Windows, use your SQL client's query editor or the equivalent environment-variable syntax. The foundation SQL file grants authentication lifecycle writes and catalogue/membership reads. For the Phase 2 branch, also apply:
+
+```bash
+psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase2.sql
+```
+
+Phase 2 grants catalogue/balance/order writes used by server-authorized services, plus insert-only audit/movement history. Neither file grants application DDL, staff membership writes or history rewrites.
 
 7. For sample data, set `BENNYC_DEMO_DATA=true` and `SEED_DATABASE_NAME=bennyc_development`, matching the actual database. Then run:
 
@@ -72,7 +78,7 @@ The GitHub workflow creates a disposable PostgreSQL 17 service, migrates and see
 
 `npm run test:integration` deliberately refuses to run without an isolated `bennyc_ci` database, configured runtime role and running local app. Do not point the test fixture at a real shop database. UI screenshot/browser checks are a separate required gate, not inferred from a build.
 
-See [PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for actual results and pending checks. Phase 2 starts with owner catalogue editing and physical inventory after G1 is verified.
+See [PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for actual results and pending checks. See [IMPLEMENTATION_PHASE_02.md](docs/IMPLEMENTATION_PHASE_02.md) for the stock/counter-sale workflow and remaining media/browser checks.
 
 ## Project documents
 
@@ -96,3 +102,11 @@ See [PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for actual results and pending c
 | Toolchain | [TOOLCHAIN.md](docs/TOOLCHAIN.md) |
 
 Antigravity can continue directly in this repository. Read `AGENTS.md` and `docs/PROJECT_STATUS.md` first; do not re-scaffold the application or substitute another backend. The agreed stack is Next.js/TypeScript/Tailwind + PostgreSQL/Prisma/Better Auth, with Cloudinary planned for Phase 2 and Paystack for Phase 4. **No Supabase dependency.**
+
+## Phase 2 workspaces
+
+- Owner: `/admin/products` to add/edit/publish/archive products and upload photographs.
+- Staff/owner: `/admin/inventory` to receive batches, inspect expiry/quarantine and view movements. Stock adjustments and costs are owner-only.
+- Staff/owner: `/admin/sales/new` to record an already paid and handed-over shop/WhatsApp sale. A transfer screenshot is insufficient evidence. Sample catalogues produce labelled demo sale records only.
+
+Signed product uploads require private Cloudinary environment configuration; see `.env.example`. No live provider upload has yet been verified. Month-only/unknown expiry units remain blocked. The first incomplete visual/media gate stays visible in PROJECT_STATUS.md.

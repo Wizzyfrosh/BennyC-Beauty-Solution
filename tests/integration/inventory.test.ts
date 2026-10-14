@@ -2,6 +2,7 @@ import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID, randomBytes } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
+import sharp from "sharp";
 import { createPrismaClient } from "../../src/server/prisma-client";
 const direct = process.env.DIRECT_URL,
   runtime = process.env.DATABASE_URL;
@@ -153,6 +154,51 @@ after(async () => {
   });
   await db.$disconnect();
   await appDb.$disconnect();
+});
+test("TC05 valid uploads fail closed without Cloudinary configuration and reject malformed retry keys", async () => {
+  const { record } = await product("media-configuration");
+  const bytes = await sharp({
+    create: {
+      width: 8,
+      height: 8,
+      channels: 3,
+      background: { r: 100, g: 140, b: 120 },
+    },
+  })
+    .png()
+    .toBuffer();
+  const form = new FormData();
+  form.set("productId", record.id);
+  form.set("altText", "Fixture packaging");
+  form.set(
+    "file",
+    new File([new Uint8Array(bytes)], "fixture.png", { type: "image/png" }),
+  );
+  const failed = await fetch(base + "/api/admin/product-images", {
+    method: "POST",
+    headers: {
+      cookie: actors.owner.cookie,
+      Origin: base,
+      "Idempotency-Key": randomUUID(),
+    },
+    body: form,
+  });
+  assert.equal(failed.status, 503);
+  assert.equal((await failed.json()).error.code, "MEDIA_NOT_CONFIGURED");
+  const invalid = await fetch(base + "/api/admin/product-images", {
+    method: "POST",
+    headers: {
+      cookie: actors.owner.cookie,
+      Origin: base,
+      "Idempotency-Key": "bad",
+    },
+    body: form,
+  });
+  assert.equal(invalid.status, 400);
+  assert.equal(
+    await db.productImage.count({ where: { productId: record.id } }),
+    0,
+  );
 });
 test("TC05 owner catalogue edits work; staff price/publication writes are denied", async () => {
   const { record, payload } = await product("catalogue");

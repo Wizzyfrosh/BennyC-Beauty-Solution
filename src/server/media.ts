@@ -9,6 +9,12 @@ import { getDb } from "./db";
 import { DomainError } from "./domain-error";
 
 export async function uploadProductImage(request: Request, actor: StaffActor) {
+  const key = z
+    .string()
+    .min(16)
+    .max(128)
+    .regex(/^[a-zA-Z0-9._:-]+$/)
+    .parse(request.headers.get("Idempotency-Key"));
   if (!request.headers.get("content-type")?.startsWith("multipart/form-data"))
     throw new DomainError(
       415,
@@ -21,6 +27,16 @@ export async function uploadProductImage(request: Request, actor: StaffActor) {
     headers: request.headers,
     body: bytes,
   }).formData();
+  if (
+    [...form.keys()].some(
+      (name) => !["productId", "altText", "file"].includes(name),
+    )
+  )
+    throw new DomainError(
+      400,
+      "INVALID_IMAGE_FORM",
+      "Submit only the product, image description and image file.",
+    );
   const productId = z.uuid().parse(form.get("productId"));
   const altText = z.string().trim().min(3).max(250).parse(form.get("altText"));
   const file = form.get("file");
@@ -127,10 +143,14 @@ export async function uploadProductImage(request: Request, actor: StaffActor) {
       actor,
       true,
       "catalogue.image",
-      request.headers.get("Idempotency-Key"),
+      key,
       { productId, altText, fileHash: digest(buffer.toString("base64")) },
       async (tx, operationId) => {
         await tx.$queryRaw`SELECT id FROM public.products WHERE id=${productId}::uuid FOR UPDATE`;
+        await tx.productImage.updateMany({
+          where: { productId },
+          data: { sortOrder: 0 },
+        });
         const image = await tx.productImage.create({
           data: {
             productId,
@@ -143,7 +163,7 @@ export async function uploadProductImage(request: Request, actor: StaffActor) {
             width: uploaded.width,
             height: uploaded.height,
             altText,
-            sortOrder: -Math.floor(Date.now() / 1000),
+            sortOrder: -1,
           },
         });
         await audit(

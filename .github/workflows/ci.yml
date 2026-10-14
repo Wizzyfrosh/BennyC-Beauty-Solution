@@ -1,7 +1,7 @@
-name: Foundation checks
+name: Build and inventory checks
 on:
   push:
-    branches: [main, "codex/**"]
+    branches: [main]
   pull_request:
 permissions:
   contents: read

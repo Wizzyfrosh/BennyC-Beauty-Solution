@@ -7,7 +7,7 @@ Phase 1 application code has been implemented against the complete specification
 | Gate | Status | Evidence/blocker |
 | --- | --- | --- |
 | G1 — Foundation, catalogue, staff | **PENDING verification** | Build/typecheck/lint, 2 unit tests and 10 real PostgreSQL/auth integration tests passed. Phone/desktop browser review is pending. |
-| G2 — Catalogue operations/inventory | PENDING | Not implemented; follows G1 |
+| G2 — Catalogue operations/inventory | PENDING verification | Phase 2 code implemented; local build/typecheck/lint and 4 unit tests pass. PostgreSQL suite passed on 1d6b4db: 19 integration tests including stock races/retries and permission checks. Configured Cloudinary upload and browser review remain pending. |
 | G3 — Customer orders/pitch demo | PENDING | Not implemented; follows G2 |
 | G4 — Payments/order handling | PENDING | Not implemented; no payment credentials used |
 | G5 — Launch/operating readiness | PENDING | No production launch authorized or performed |
@@ -45,7 +45,7 @@ The initial `tsx --test` command could not open its IPC socket in this container
 1. Database/auth verification passed in GitHub Actions. Continue with the outstanding browser/keyboard gate; do not interpret backend tests as visual approval.
 2. Run the visual and keyboard walkthrough at 360 px, 768 px and desktop in a browser; compare `/preview` with the supplied reference and verify variant interaction.
 3. Configure a dedicated developer PostgreSQL database privately, migrate, apply runtime grants, seed and provision the first owner following README. No secrets should be pasted into chat.
-4. Only after G1 evidence is complete, begin Phase 2 catalogue editing, owner-only image uploads and physical inventory. Cart/checkout and payment are still later phases.
+4. Phase 2 development continued with user authorization. Complete its outstanding browser and configured-media checks before declaring G2 complete. Customer cart/checkout and provider payments remain later phases.
 
 ## Verified GitHub CI evidence
 
@@ -57,3 +57,9 @@ Code revision: `cf1552f01082577d0e07de20379b8fc4661601cc`. Both push and pull-re
 The job log confirms 2 unit tests and 10 integration tests, zero failures. TC01 passed draft/inactive-category exclusion and bounded inputs; TC02 passed independent active variant prices; TC03 passed anonymous/ordinary/inactive denial and owner/staff access; TC04 passed editable-role rejection, immediate deactivation, public signup rejection, untrusted-origin rejection, logout and expired-session replay denial. TR04 passed runtime DDL/catalogue/membership write denial; TR10 passed invalid price/publication constraint rejection. Migrations applied to the disposable database and the development seed ran successfully twice.
 
 The uploaded Git source tree and all three image blob hashes were verified against the tested local files. Draft PR: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/pull/1. This evidence update changes documentation only; it does not change the tested application.
+
+## Phase 2 progress — 14 October 2026
+
+The user explicitly authorized continuing development. Catalogue editing, signed image upload code, receiving, batch/quarantine/expiry tracking, owner adjustments, movement/audit history and atomic counter/WhatsApp sales are implemented. See IMPLEMENTATION_PHASE_02.md. Code saved on the same review branch. GitHub CI passed on 1d6b4dbc0de01ff5917bc30a74b819028123ee92: 4 unit and 19 real PostgreSQL/auth/inventory integration tests. A final upload retry validation test is being verified. Phone/desktop review remains pending, and Cloudinary credentials were not requested in chat or provisioned. No live payment or public deployment occurred.
+
+Phase 2 CI evidence: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38518970667. Both migrations applied, seed repeated, final-unit race and full-basket rollback passed. FEFO/variant separation, receipt/sale retry safety, expiry/quarantine, owner-only costs/adjustments, snapshot retention and append-only history passed.
