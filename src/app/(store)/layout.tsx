@@ -1,5 +1,6 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { StorefrontMotion } from "@/components/storefront-motion";
 export default function StoreLayout({
   children,
 }: {
@@ -10,6 +11,7 @@ export default function StoreLayout({
       <Header />
       <main id="main">{children}</main>
       <Footer />
+      <StorefrontMotion />
     </>
   );
 }

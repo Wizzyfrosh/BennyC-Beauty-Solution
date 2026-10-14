@@ -17,7 +17,7 @@ export function ProductCard({
     ? `/preview/${product.slug}`
     : `/products/${product.slug}`;
   return (
-    <article className="product-card">
+    <article className="product-card" data-motion>
       <Link
         href={href}
         className="product-photo-link"

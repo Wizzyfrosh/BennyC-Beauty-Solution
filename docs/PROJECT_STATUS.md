@@ -1,5 +1,13 @@
 # Project status and gate evidence
 
+## Storefront motion and backend preparation — 14 October 2026
+
+User requested animations and PostgreSQL/staff setup. FR01/FR02 design interactions now include a brief hero entrance, once-per-entry section/card reveals, fine-pointer hover lift/zoom and touch button feedback. A small shared client observer handles route/filter changes; content remains visible without JavaScript and reduced-motion preference disables animation. No dependency, lockfile, schema, catalogue or payment behavior changes.
+
+Local `npm run typecheck`, `npm run lint`, `npm test` (14 passed, zero failures), `npm run build` and source Prettier checks passed. The final build includes TypeScript validation. Rendered motion on phone/desktop, reduced-motion behavior and keyboard QA remain PENDING; the supplied still screenshots cannot verify animation. G1–G5 remain PENDING their independent evidence. CI for this revision will be recorded after the branch is saved.
+
+Account setup is PENDING: Neon and Vercel were identified as available integrations but neither connection is confirmed. [VERCEL_BACKEND_SETUP.md](VERCEL_BACKEND_SETUP.md) documents separate runtime/migration credentials, existing grants, real-store settings initialization without demo seeding and trusted first-owner/MFA setup. No account resource, database migration, secret configuration or owner was created. Next task: connect the accounts, identify the existing Vercel project and isolated database, then complete private setup; review deployed motion on a phone.
+
 Updated: 14 October 2026 UTC. Phases 1–5 were reviewed on `codex/phase-1-foundation` and merged into `main` through PR #1 with explicit user authorization. Current mobile review: `codex/mobile-visual-review`.
 
 Phases 1–5 application code have been implemented against the specification; remaining gates are recorded below. The user-selected teal reference replaces the earlier plum design proposal. The user deployed the application to https://benny-c-beauty-solution.vercel.app. No verified production database, live merchant activation or actual shop-data readiness is recorded; a hosted design review does not clear those gates.

@@ -1,5 +1,11 @@
 # Toolchain and source register
 
+## Storefront motion — 14 October 2026
+
+Uses existing React/Next.js and native IntersectionObserver/MutationObserver with CSS transforms/opacity. No animation package, dependency update or lockfile change. Observer work is disconnected on route cleanup and reduced-motion changes; focused content stays still and animation classes are removed after completion. Local typecheck/lint/build pass. Browser motion QA remains pending. Primary API reference reviewed: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API.
+
+Private backend preparation references: https://neon.com/docs/guides/vercel-overview, https://neon.com/docs/guides/prisma and https://neon.com/docs/manage/roles. Neon and Vercel integrations are available but connection is unconfirmed. Keep Prisma 7.10, the existing TCP adapter and app-managed Better Auth. No service or database was provisioned. See VERCEL_BACKEND_SETUP.md.
+
 Implemented 13 October 2026. Antigravity remains the user-selected editor; this branch was created in the shared Codex workspace.
 
 | Tool | Version / evidence |
