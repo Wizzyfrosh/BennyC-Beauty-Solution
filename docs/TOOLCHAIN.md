@@ -27,7 +27,7 @@ Prisma 7.10.0 is deliberately paired across CLI/client/driver. The registry late
 
 ## Mobile screenshot follow-up
 
-The user-deployed Vercel site and three supplied phone screenshots provide partial rendered evidence. The hero Our story arrow uses existing lucide-react 1.56.0 SVG instead of a platform-dependent Unicode emoji. No package/lockfile or framework change. Source-route comparison confirms the supplied empty featured section is the unavailable live catalogue, while the independent `/preview` fixture contains sample cards. Full phone/keyboard/tablet/desktop and actual provider verification remain pending. Follow-up type/build/lint and CI evidence are recorded in PROJECT_STATUS.md when complete.
+The user-deployed Vercel site and three supplied phone screenshots provide partial rendered evidence. The hero Our story arrow uses existing lucide-react 1.56.0 SVG instead of a platform-dependent Unicode emoji. No package/lockfile or framework change. Source-route comparison confirms the supplied empty featured section is the unavailable live catalogue, while the independent `/preview` fixture contains sample cards. Local typecheck/lint/build passed. Revision 5058857762c325fb4763cd4bd222a414de7324a2, run https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38610487056, passed all existing checks, 14 unit/54 integration tests and disposable restore (32 tables, 13 receipt-backed batches). Full phone/keyboard/tablet/desktop and actual provider verification remain pending; the SVG result still needs a supplied phone view.
 
 ## Primary implementation references
 
