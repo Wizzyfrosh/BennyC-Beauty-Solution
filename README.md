@@ -19,6 +19,8 @@ The real `/` and `/shop` routes read PostgreSQL. Before configuration they show 
 
 ## Configure the development backend
 
+For the user-deployed Vercel site, follow [VERCEL_BACKEND_SETUP.md](docs/VERCEL_BACKEND_SETUP.md) for private PostgreSQL configuration, an empty real catalogue and first-owner authentication. Account connection and actual setup remain pending.
+
 1. Create a **dedicated development PostgreSQL database**, for example `bennyc_development`. Do not use a production database.
 2. Create a migration role with DDL rights and a separate non-superuser runtime LOGIN role with no schema ownership, `CREATEDB`, `CREATEROLE` or inherited privileged membership. Set each password privately with your database administrator or `psql`'s `\password` command.
 3. Copy `.env.example` to `.env` in your local terminal. Set `DIRECT_URL` to the migration connection and `DATABASE_URL` to the restricted runtime connection. Use verified TLS for a remote database; do not disable certificate checks.
