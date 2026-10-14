@@ -1,8 +1,8 @@
 # Project status and gate evidence
 
-Updated: 14 October 2026 UTC. Implementation branch: `codex/phase-1-foundation`.
+Updated: 14 October 2026 UTC. Phases 1–5 were reviewed on `codex/phase-1-foundation` and merged into `main` through PR #1 with explicit user authorization. Current mobile review: `codex/mobile-visual-review`.
 
-Phases 1–5 application code have been implemented for review against the specification; remaining gates are recorded below. The user-selected teal reference replaces the earlier plum design proposal. No production database, live merchant account, real shop data or public deployment has been configured.
+Phases 1–5 application code have been implemented against the specification; remaining gates are recorded below. The user-selected teal reference replaces the earlier plum design proposal. The user deployed the application to https://benny-c-beauty-solution.vercel.app. No verified production database, live merchant activation or actual shop-data readiness is recorded; a hosted design review does not clear those gates.
 
 | Gate | Status | Evidence/blocker |
 | --- | --- | --- |
@@ -11,6 +11,14 @@ Phases 1–5 application code have been implemented for review against the speci
 | G3 — Customer orders/pitch demo | PENDING verification | Phase 3 code implemented; build/typecheck/lint, six unit and 32 PostgreSQL integration tests pass on 6469d4e. Browser/pitch checks remain pending. |
 | G4 — Payments/order handling | PENDING verification | Phase 4 code implemented; build/typecheck/lint, eight unit and 44 PostgreSQL integration tests pass on fc914a3. Actual merchant test payment, external notifications and browser evidence remain pending. No live credentials used. |
 | G5 — Launch/operating readiness | PENDING verification | Phase 5 build/types/lint, 10 unit and 54 PostgreSQL/HTTP tests plus disposable restore passed on f5d74fe. Real data, operator training, hosted/asset recovery/configuration and launch authorization remain pending. |
+
+## User-supplied mobile screenshots — 14 October 2026
+
+FR01/TR07/TC30 partial visual evidence: IMG_0850.jpeg, IMG_0851.jpeg and IMG_0852.jpeg show the hosted mobile header/hero, feature panel, category imagery, ritual banner, service panel and footer rendered. The screenshots show the database-backed homepage (Featured products / Our collection is being prepared), not `/preview` (The preview collection / explicit sample notice). The missing featured cards are consistent with the intentionally unavailable catalogue state; they are not evidence of failed image delivery. The read-only fixture with four sample cards is https://benny-c-beauty-solution.vercel.app/preview. Do not fabricate live products to conceal unavailable database setup.
+
+The Our story arrow renders as a blue platform emoji in IMG_0850. It is replaced with the existing Lucide SVG icon, marked decorative inside its unchanged circle/label. This is a bounded presentation correction; no new dependency, data, payment or auth change. Local and CI verification are pending for this follow-up. Browser interaction, actual CSS viewport measurements, keyboard/contrast audit, tablet/desktop comparison, sample product-card screenshots and media/merchant gates remain pending. Screenshots alone do not prove those checks or exact reference fidelity. The iOS address/status bars are browser chrome, not page overlays to remove from the app.
+
+Next: open `/preview`, confirm the explicit preview notice and four sample product cards, and supply that phone view before recording the missing visual evidence. Backend configuration is a separate operating task.
 
 ## Implemented Phase 1 scope
 

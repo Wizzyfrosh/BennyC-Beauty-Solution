@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowUpRight,
   Droplets,
   Flower2,
   Headphones,
@@ -83,7 +84,10 @@ export function Homepage({
                 Explore the shop <ArrowRight size={18} />
               </Link>
               <Link href="/about" className="hero-secondary">
-                <span>↗</span> Our story
+                <span aria-hidden="true">
+                  <ArrowUpRight size={18} />
+                </span>{" "}
+                Our story
               </Link>
             </div>
           </div>
