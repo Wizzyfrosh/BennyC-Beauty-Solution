@@ -6,6 +6,8 @@ User requested animations and PostgreSQL/staff setup. FR01/FR02 design interacti
 
 Local `npm run typecheck`, `npm run lint`, `npm test` (14 passed, zero failures), `npm run build` and source Prettier checks passed. The final build includes TypeScript validation. Rendered motion on phone/desktop, reduced-motion behavior and keyboard QA remain PENDING; the supplied still screenshots cannot verify animation. G1–G5 remain PENDING their independent evidence. CI for this revision will be recorded after the branch is saved.
 
+Saved application revision: `ca0e7b3ed90951610f4eaff6a57f46f42de64ec7`, exact local/uploaded tree `81241b88e421c34cfcc463c0daf69bf0a268ed5b`. CI https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38615029131 is in progress; no result is inferred. PR #2 remains open; these animations have not been deployed to the user's production site. The design brief records the requested motion style for future work.
+
 Account setup is PENDING: Neon and Vercel were identified as available integrations but neither connection is confirmed. [VERCEL_BACKEND_SETUP.md](VERCEL_BACKEND_SETUP.md) documents separate runtime/migration credentials, existing grants, real-store settings initialization without demo seeding and trusted first-owner/MFA setup. No account resource, database migration, secret configuration or owner was created. Next task: connect the accounts, identify the existing Vercel project and isolated database, then complete private setup; review deployed motion on a phone.
 
 Updated: 14 October 2026 UTC. Phases 1–5 were reviewed on `codex/phase-1-foundation` and merged into `main` through PR #1 with explicit user authorization. Current mobile review: `codex/mobile-visual-review`.
