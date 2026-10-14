@@ -27,3 +27,7 @@ No database → explicit collection/workspace unavailable states and 503 API res
 ## Gate
 
 See PROJECT_STATUS.md for actual evidence. A production build is not proof of real database permissions, staff access or visual fidelity. Those checks remain independently tracked.
+
+## Verified outcome
+
+Build, typecheck, lint and two focused unit tests passed locally. GitHub Actions on code revision cf1552f01082577d0e07de20379b8fc4661601cc also passed migration setup, repeatable seed and ten real PostgreSQL/auth integration tests. Browser visual/keyboard checks remain pending. See PROJECT_STATUS.md for run links and exact test coverage.

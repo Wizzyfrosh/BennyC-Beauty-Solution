@@ -1,12 +1,12 @@
 # Project status and gate evidence
 
-Updated: 13 October 2026 UTC. Implementation branch: `codex/phase-1-foundation`.
+Updated: 14 October 2026 UTC. Implementation branch: `codex/phase-1-foundation`.
 
 Phase 1 application code has been implemented against the complete specification. The user-selected teal reference replaces the earlier plum design proposal. No production database, live merchant account, real shop data or public deployment has been configured.
 
 | Gate | Status | Evidence/blocker |
 | --- | --- | --- |
-| G1 — Foundation, catalogue, staff | **PENDING verification** | Build/typecheck/lint and focused unit checks passed locally. Real PostgreSQL/auth checks are provided in CI; outcome to be recorded. Phone/desktop browser review is pending. |
+| G1 — Foundation, catalogue, staff | **PENDING verification** | Build/typecheck/lint, 2 unit tests and 10 real PostgreSQL/auth integration tests passed. Phone/desktop browser review is pending. |
 | G2 — Catalogue operations/inventory | PENDING | Not implemented; follows G1 |
 | G3 — Customer orders/pitch demo | PENDING | Not implemented; follows G2 |
 | G4 — Payments/order handling | PENDING | Not implemented; no payment credentials used |
@@ -34,7 +34,7 @@ Host: managed Linux container; Node 24.19.0, npm 11.9.0, Git 2.51.1.
 | Lint | PASS | `npm run lint`, no warnings after PostCSS export fix |
 | Focused unit tests | PASS | `npm test`: 2 tests, integer money handling and bounded catalogue inputs |
 | Production build | PASS | `npm run build`: all pages/routes compiled, static pages generated |
-| Migrations/real sessions/DB privileges | PENDING | Dedicated disposable PostgreSQL CI workflow added; no local database available |
+| Migrations/real sessions/DB privileges | PASS (CI) | PostgreSQL 17, migration replay, seed run twice, real Better Auth sessions and restricted runtime role; 10 integration tests passed |
 | Mobile/desktop browser, keyboard and visual comparison | PENDING | Browser control unavailable in this managed environment; no screenshot or pixel-perfect claim |
 | Live credentials/production data/payment | NOT RUN | Out of Phase 1 scope |
 
@@ -42,7 +42,18 @@ The initial `tsx --test` command could not open its IPC socket in this container
 
 ## Required next steps
 
-1. Confirm the GitHub workflow result for this branch; fix any actual database/auth failures before marking those checks complete.
+1. Database/auth verification passed in GitHub Actions. Continue with the outstanding browser/keyboard gate; do not interpret backend tests as visual approval.
 2. Run the visual and keyboard walkthrough at 360 px, 768 px and desktop in a browser; compare `/preview` with the supplied reference and verify variant interaction.
 3. Configure a dedicated developer PostgreSQL database privately, migrate, apply runtime grants, seed and provision the first owner following README. No secrets should be pasted into chat.
 4. Only after G1 evidence is complete, begin Phase 2 catalogue editing, owner-only image uploads and physical inventory. Cart/checkout and payment are still later phases.
+
+## Verified GitHub CI evidence
+
+Code revision: `cf1552f01082577d0e07de20379b8fc4661601cc`. Both push and pull-request workflows completed successfully:
+
+- https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38484035285
+- https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38484090180
+
+The job log confirms 2 unit tests and 10 integration tests, zero failures. TC01 passed draft/inactive-category exclusion and bounded inputs; TC02 passed independent active variant prices; TC03 passed anonymous/ordinary/inactive denial and owner/staff access; TC04 passed editable-role rejection, immediate deactivation, public signup rejection, untrusted-origin rejection, logout and expired-session replay denial. TR04 passed runtime DDL/catalogue/membership write denial; TR10 passed invalid price/publication constraint rejection. Migrations applied to the disposable database and the development seed ran successfully twice.
+
+The uploaded Git source tree and all three image blob hashes were verified against the tested local files. Draft PR: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/pull/1. This evidence update changes documentation only; it does not change the tested application.
