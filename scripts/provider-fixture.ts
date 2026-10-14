@@ -69,6 +69,7 @@ createServer(async (req, res) => {
     data = refunds.get(url.pathname.slice(8));
   }
   if (
+    !url.pathname.startsWith("/__fixture/") &&
     data &&
     typeof data === "object" &&
     "unavailable" in data &&
