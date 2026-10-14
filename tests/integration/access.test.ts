@@ -200,7 +200,7 @@ test("TC04 editable user fields cannot grant membership", async () => {
         role: "OWNER",
       })
     ).status,
-    404,
+    403,
   );
 });
 test("TC04 deactivation blocks an already signed-in user immediately", async () => {

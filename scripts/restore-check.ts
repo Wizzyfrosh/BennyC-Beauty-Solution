@@ -120,6 +120,16 @@ try {
       .replaceAll(':"runtime_role"', '"bennyc_ci_runtime"');
     await target.query(sql);
   }
+  // A no-ACL restore recreates functions with default PUBLIC execution rights.
+  // Reviewed grants must explicitly restore the original restrictive boundary.
+  const publicFunctions = await target.query(
+    `SELECT COUNT(*)::int AS exposed FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace CROSS JOIN LATERAL aclexplode(COALESCE(p.proacl,acldefault('f',p.proowner))) a WHERE n.nspname='public' AND p.proname IN ('lock_active_staff','manage_staff') AND a.grantee=0 AND a.privilege_type='EXECUTE'`,
+  );
+  assert.equal(
+    publicFunctions.rows[0].exposed,
+    0,
+    "Staff functions exposed to PUBLIC after restore",
+  );
   const runtimeUrl = new URL(runtime);
   runtimeUrl.pathname = "/bennyc_ci_restore";
   const app = createPrismaClient(runtimeUrl.toString());

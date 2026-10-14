@@ -11,10 +11,16 @@ export async function GET(request: Request) {
     if (error instanceof StaffAccessError)
       return apiError(
         error.status,
-        error.status === 503 ? "SERVICE_UNAVAILABLE" : "ACCESS_DENIED",
-        error.status === 503
-          ? "Staff access is temporarily unavailable."
-          : "Staff access required.",
+        error.code === "OWNER_MFA_REQUIRED"
+          ? error.code
+          : error.status === 503
+            ? "SERVICE_UNAVAILABLE"
+            : "ACCESS_DENIED",
+        error.code === "OWNER_MFA_REQUIRED"
+          ? "Set up owner authenticator protection before production access."
+          : error.status === 503
+            ? "Staff access is temporarily unavailable."
+            : "Staff access required.",
         error.status === 503,
       );
     console.error("Staff overview dependency unavailable");

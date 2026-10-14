@@ -693,15 +693,16 @@ test("TR07 authenticator enrollment uses encrypted recovery data, revokes pre-en
     "anonymous",
   );
   actors.challenge.cookie = again.cookie;
+  const reused = await req(
+    "/api/auth/two-factor/verify-backup-code",
+    { code: enabled.data.backupCodes[0], trustDevice: false },
+    "challenge",
+  );
+  assert.equal(reused.status, 401);
+  assert.equal(reused.data.code, "INVALID_BACKUP_CODE");
   assert.equal(
-    (
-      await req(
-        "/api/auth/two-factor/verify-backup-code",
-        { code: enabled.data.backupCodes[0], trustDevice: false },
-        "challenge",
-      )
-    ).status,
-    400,
+    (await req("/api/admin/overview", undefined, "challenge")).status,
+    401,
   );
   const promoted = await req(
     "/api/auth/update-user",
@@ -720,36 +721,101 @@ test("TR07 production owner APIs require completed MFA enrollment and a challeng
   const { spawn } = await import("node:child_process");
   const { setTimeout: delay } = await import("node:timers/promises");
   const productionBase = "http://localhost:3001";
-  const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", "3001"], {
-    env: { ...process.env, NODE_ENV: "production", BETTER_AUTH_URL: "https://localhost:3001" }, stdio: "ignore",
-  });
+  const server = spawn(
+    process.execPath,
+    [
+      "node_modules/next/dist/bin/next",
+      "start",
+      "--hostname",
+      "127.0.0.1",
+      "--port",
+      "3001",
+    ],
+    {
+      env: {
+        ...process.env,
+        NODE_ENV: "production",
+        BETTER_AUTH_URL: "https://localhost:3001",
+      },
+      stdio: "ignore",
+    },
+  );
   async function post(path: string, body: unknown, cookie = "") {
-    const response = await fetch(productionBase + path, { method: "POST", headers: { Origin: "https://localhost:3001", Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    return { status: response.status, data: await response.json(), cookie: response.headers.getSetCookie().map(c => c.split(";")[0]).join("; ") };
+    const response = await fetch(productionBase + path, {
+      method: "POST",
+      headers: {
+        Origin: "https://localhost:3001",
+        Cookie: cookie,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    return {
+      status: response.status,
+      data: await response.json(),
+      cookie: response.headers
+        .getSetCookie()
+        .map((c) => c.split(";")[0])
+        .join("; "),
+    };
   }
   try {
     let ready = false;
     for (let i = 0; i < 60; i++) {
-      try { ready = (await fetch(productionBase + "/shopping-guide")).ok; } catch {}
+      try {
+        ready = (await fetch(productionBase + "/shopping-guide")).ok;
+      } catch {}
       if (ready) break;
       await delay(250);
     }
     assert.equal(ready, true, "Production server did not start");
-    const other = await post("/api/auth/sign-in/email", { email: actors.other.email, password: actors.other.password });
+    const other = await post("/api/auth/sign-in/email", {
+      email: actors.other.email,
+      password: actors.other.password,
+    });
     assert.equal(other.status, 200, JSON.stringify(other.data));
-    const denied = await fetch(productionBase + "/api/admin/overview", { headers: { Cookie: other.cookie } });
+    const denied = await fetch(productionBase + "/api/admin/overview", {
+      headers: { Cookie: other.cookie },
+    });
     assert.equal(denied.status, 403);
     assert.equal((await denied.json()).error.code, "OWNER_MFA_REQUIRED");
-    const login = await post("/api/auth/sign-in/email", { email: actors.owner.email, password: actors.owner.password });
+    const login = await post("/api/auth/sign-in/email", {
+      email: actors.owner.email,
+      password: actors.owner.password,
+    });
     assert.equal(login.data.twoFactorRedirect, true);
-    assert.equal((await fetch(productionBase + "/api/admin/overview", { headers: { Cookie: login.cookie } })).status, 401);
-    const code = await createOTP(enrolledSecret, { digits: 6, period: 30 }).totp();
-    const verified = await post("/api/auth/two-factor/verify-totp", { code, trustDevice: false }, login.cookie);
+    assert.equal(
+      (
+        await fetch(productionBase + "/api/admin/overview", {
+          headers: { Cookie: login.cookie },
+        })
+      ).status,
+      401,
+    );
+    const code = await createOTP(enrolledSecret, {
+      digits: 6,
+      period: 30,
+    }).totp();
+    const verified = await post(
+      "/api/auth/two-factor/verify-totp",
+      { code, trustDevice: false },
+      login.cookie,
+    );
     assert.equal(verified.status, 200, JSON.stringify(verified.data));
-    assert.equal((await fetch(productionBase + "/api/admin/overview", { headers: { Cookie: mergeCookies(login.cookie, verified.cookie) } })).status, 200);
+    assert.equal(
+      (
+        await fetch(productionBase + "/api/admin/overview", {
+          headers: { Cookie: mergeCookies(login.cookie, verified.cookie) },
+        })
+      ).status,
+      200,
+    );
   } finally {
     server.kill("SIGTERM");
-    await new Promise<void>(resolve => { if (server.exitCode !== null) resolve(); else server.once("exit", () => resolve()); });
+    await new Promise<void>((resolve) => {
+      if (server.exitCode !== null) resolve();
+      else server.once("exit", () => resolve());
+    });
   }
 });
 test("TR04 concurrent owner removal never removes the last active owner", async () => {
