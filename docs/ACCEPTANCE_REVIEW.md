@@ -11,7 +11,7 @@ Requirements: FR01–FR16, TC30/TR07 usability and failure recovery, plus outsta
 | Failed operations refresh could hide errors behind previously loaded data or reject from an async job handler | Catch refresh errors, keep and date-label the prior snapshot, show an alert, clear it after a successful refresh | Code review; browser failure-state review remains pending |
 | Policy textareas lacked the shared visible focus style; cart rows reused indistinguishable action names | Include textareas in focus styling and identify the product/variant in quantity/remove controls | Source review only; rendered contrast, touch targets and screen-reader/keyboard review remain pending |
 
-Local rules/types/lint and CI results are recorded in PROJECT_STATUS.md after completion. No dependency, migration, runtime privilege or live-mode activation is required for these fixes.
+Local build/types/lint and 14 unit tests pass. Final application `7014c2f0a6649259a6a588637273f1164ba7bd20` also passed all 54 PostgreSQL/HTTP tests and disposable restore (32 table fingerprints, 13 receipt-backed batches, auth/constraints/permissions) in https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38564122196. Full evidence is in PROJECT_STATUS.md. No dependency, migration, runtime privilege or live-mode activation is required for these fixes. Browser/merchant/operator checks below remain independent and pending.
 
 ## Open the review branch locally
 

@@ -83,6 +83,8 @@ The GitHub workflow creates a disposable PostgreSQL 17 service, migrates and see
 
 See [PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for actual results and pending checks. See [IMPLEMENTATION_PHASE_02.md](docs/IMPLEMENTATION_PHASE_02.md) for the stock/counter-sale workflow and remaining media/browser checks.
 
+After the five coding phases, follow [ACCEPTANCE_REVIEW.md](docs/ACCEPTANCE_REVIEW.md) for the local review-branch setup, reference/phone/keyboard walkthrough and actual media/merchant/operator gates. Passing CI does not approve a public launch.
+
 ## Project documents
 
 | Document | File |
