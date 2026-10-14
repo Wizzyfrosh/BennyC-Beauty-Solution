@@ -68,6 +68,16 @@ createServer(async (req, res) => {
   } else if (url.pathname.startsWith("/refund/")) {
     data = refunds.get(url.pathname.slice(8));
   }
+  if (
+    data &&
+    typeof data === "object" &&
+    "unavailable" in data &&
+    data.unavailable
+  ) {
+    res.statusCode = 503;
+    res.end(JSON.stringify({ status: false }));
+    return;
+  }
   if (!data) {
     res.statusCode = 404;
     res.end(JSON.stringify({ status: false }));

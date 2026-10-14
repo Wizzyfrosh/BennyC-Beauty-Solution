@@ -143,7 +143,22 @@ export async function recordRefund(
         .regex(/^\d{1,20}$/)
         .optional(),
       simulateSuccess: z.boolean().optional(),
+      manualConfirmation: z
+        .strictObject({
+          method: z.enum(["CASH", "BANK_TRANSFER", "POS"]),
+          confirmed: z.literal(true),
+          reference: z.string().trim().min(3).max(100).optional(),
+        })
+        .refine((m) => m.method === "CASH" || !!m.reference)
+        .optional(),
     })
+    .refine(
+      (v) =>
+        Number(!!v.simulateSuccess) +
+          Number(!!v.manualConfirmation) +
+          Number(!!v.providerRefundReference) <=
+        1,
+    )
     .parse(raw);
   // Provider verification is outside locks. Only authenticated owner routes can call this service.
   let verified: Awaited<ReturnType<typeof verifyRefundProvider>> | null = null;
@@ -169,7 +184,7 @@ export async function recordRefund(
         );
       if (input.simulateSuccess) {
         assertDemoCheckout();
-        if (!order.isDemo || payment.provider !== "SIMULATED")
+        if (!order.isDemo || payment.paymentMode !== "SIMULATED")
           throw new DomainError(
             409,
             "SIMULATED_REFUND_REQUIRED",
@@ -195,11 +210,26 @@ export async function recordRefund(
           "REFUND_EVIDENCE_REQUIRED",
           "Initiate the test refund in the Paystack dashboard, then enter its refund ID for server verification.",
         );
-      if (payment.provider !== "SIMULATED" && payment.provider !== "PAYSTACK")
+      if (
+        input.manualConfirmation &&
+        (payment.provider !== "MANUAL" ||
+          payment.paymentMode !== "LIVE" ||
+          order.isDemo)
+      )
         throw new DomainError(
           409,
-          "REFUND_PROVIDER_UNSUPPORTED",
-          "Manual counter refund evidence requires a later controlled workflow.",
+          "MANUAL_REFUND_REQUIRED",
+          "Actual manual confirmation requires a real counter payment.",
+        );
+      if (
+        payment.provider === "MANUAL" &&
+        !input.manualConfirmation &&
+        !input.simulateSuccess
+      )
+        throw new DomainError(
+          400,
+          "MANUAL_EVIDENCE_REQUIRED",
+          "Confirm the actual refund channel. A screenshot alone is insufficient.",
         );
       const existing = input.refundId
         ? await tx.refund.findUnique({ where: { id: input.refundId } })
@@ -245,7 +275,9 @@ export async function recordRefund(
           "Successful and pending refunds cannot exceed this captured payment.",
         );
       const status =
-        input.simulateSuccess || verified?.status === "processed"
+        input.simulateSuccess ||
+        input.manualConfirmation ||
+        verified?.status === "processed"
           ? "SUCCEEDED"
           : verified?.status === "failed"
             ? "FAILED"
@@ -253,7 +285,11 @@ export async function recordRefund(
               ? "PROCESSING"
               : "REQUESTED";
       const data = {
-        providerReference: verified?.id ?? null,
+        providerReference:
+          verified?.id ??
+          (input.manualConfirmation
+            ? `manual:${payment.id}:${input.manualConfirmation.method}:${input.manualConfirmation.reference ?? op}`
+            : null),
         status,
         confirmedAt: status === "SUCCEEDED" ? await databaseNow(tx) : null,
         requestedBy: actor.userId,
@@ -266,7 +302,11 @@ export async function recordRefund(
               paymentAttemptId: payment.id,
               amountKobo: input.amountKobo,
               reason: input.reason,
-              source: verified ? "external" : "simulated",
+              source: verified
+                ? "external"
+                : input.manualConfirmation
+                  ? "app"
+                  : "simulated",
               operationId: op,
             },
           });
@@ -371,7 +411,6 @@ export async function recordReturn(
 }
 export async function paymentWorkspace() {
   return getDb().order.findMany({
-    where: { channel: "WEBSITE" },
     take: 50,
     orderBy: { createdAt: "desc" },
     select: {

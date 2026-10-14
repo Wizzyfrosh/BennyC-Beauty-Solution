@@ -635,3 +635,180 @@ test("TC16 refunding an extra charge preserves the original paid order and clear
   assert.equal(saved.confirmedPaymentAttemptId, a.id);
   assert.equal(saved.exceptionCode, null);
 });
+test("TC16 counter refund/return controls share the same physical and financial rules", async () => {
+  const o = await order(3);
+  assert.equal(
+    (
+      await req(
+        `/api/orders/${o.id}/cancel`,
+        { reason: "Free stock for counter fixture" },
+        o.cookie,
+      )
+    ).status,
+    200,
+  );
+  const sale = await req(
+    "/api/admin/sales",
+    {
+      channel: "WALK_IN",
+      items: [{ variantId: o.v.id, quantity: 1 }],
+      expectedTotalKobo: 100000,
+      payment: { method: "CASH", confirmed: true },
+    },
+    staff,
+  );
+  assert.equal(sale.status, 200);
+  const recorded = await snapshot(sale.data.orderId),
+    payment = recorded.paymentAttempts[0];
+  assert.equal(
+    (
+      await req(
+        `/api/admin/orders/${recorded.id}/refunds`,
+        {
+          paymentAttemptId: payment.id,
+          amountKobo: 100000,
+          reason: "Refund sample counter sale",
+          simulateSuccess: true,
+        },
+        staff,
+      )
+    ).status,
+    403,
+  );
+  const refunded = await req(
+    `/api/admin/orders/${recorded.id}/refunds`,
+    {
+      paymentAttemptId: payment.id,
+      amountKobo: 100000,
+      reason: "Refund sample counter sale",
+      simulateSuccess: true,
+    },
+    owner,
+  );
+  assert.equal(refunded.status, 200, JSON.stringify(refunded.data));
+  assert.equal((await snapshot(recorded.id)).paymentStatus, "REFUNDED");
+  const before = await db.stockBatch.findUniqueOrThrow({
+    where: { id: o.batch.id },
+  });
+  assert.equal(before.onHandQty, 2);
+  assert.equal(before.quarantinedQty, 0);
+  const returned = await req(
+    `/api/admin/orders/${recorded.id}/returns`,
+    {
+      orderItemId: recorded.items[0].id,
+      batchId: o.batch.id,
+      quantity: 1,
+      reason: "Counter physical return",
+    },
+    owner,
+  );
+  assert.equal(returned.status, 200);
+  const after = await db.stockBatch.findUniqueOrThrow({
+    where: { id: o.batch.id },
+  });
+  assert.equal(after.onHandQty, 3);
+  assert.equal(after.quarantinedQty, 1);
+});
+test("TC16 manual counter refunds require actual channel evidence and cannot exceed captured units of money", async () => {
+  const o = await order(3);
+  await req(
+    `/api/orders/${o.id}/cancel`,
+    { reason: "Use dedicated non-demo counter fixture" },
+    o.cookie,
+  );
+  await db.product.update({ where: { id: o.p.id }, data: { isDemo: false } });
+  const sold = await req(
+    "/api/admin/sales",
+    {
+      channel: "WALK_IN",
+      items: [{ variantId: o.v.id, quantity: 1 }],
+      expectedTotalKobo: 100000,
+      payment: { method: "CASH", confirmed: true },
+    },
+    staff,
+  );
+  assert.equal(sold.status, 200);
+  const saved = await snapshot(sold.data.orderId),
+    payment = saved.paymentAttempts[0];
+  assert.equal(payment.paymentMode, "LIVE");
+  const body = {
+    paymentAttemptId: payment.id,
+    amountKobo: 100000,
+    reason: "Isolated manual refund fixture",
+  };
+  assert.equal(
+    (await req(`/api/admin/orders/${saved.id}/refunds`, body, owner)).status,
+    400,
+  );
+  assert.equal(
+    (
+      await req(
+        `/api/admin/orders/${saved.id}/refunds`,
+        {
+          ...body,
+          manualConfirmation: { method: "BANK_TRANSFER", confirmed: true },
+        },
+        owner,
+      )
+    ).status,
+    400,
+  );
+  const confirmed = await req(
+    `/api/admin/orders/${saved.id}/refunds`,
+    { ...body, manualConfirmation: { method: "CASH", confirmed: true } },
+    owner,
+  );
+  assert.equal(confirmed.status, 200, JSON.stringify(confirmed.data));
+  assert.equal((await snapshot(saved.id)).paymentStatus, "REFUNDED");
+  assert.equal(
+    (
+      await req(
+        `/api/admin/orders/${saved.id}/refunds`,
+        { ...body, manualConfirmation: { method: "CASH", confirmed: true } },
+        owner,
+      )
+    ).status,
+    409,
+  );
+  assert.equal(
+    (await db.stockBatch.findUniqueOrThrow({ where: { id: o.batch.id } }))
+      .onHandQty,
+    2,
+  );
+});
+test("TC17 provider outage and receipt publication failure preserve paid orders and retryable durable work", async () => {
+  const o = await order(),
+    a = await initialize(o);
+  await observed(a.providerReference!, "success", { unavailable: true });
+  assert.equal((await verify(o)).status, 503);
+  assert.equal((await snapshot(o.id)).paymentStatus, "PENDING");
+  await observed(a.providerReference!, "success", { unavailable: false });
+  assert.equal((await signed(a.providerReference!)).status, 200);
+  // Inject a disposable PostgreSQL failure for exactly this generated order UUID.
+  await db.$executeRawUnsafe(
+    `CREATE FUNCTION public.ci_receipt_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.order_id='${o.id}'::uuid THEN RAISE EXCEPTION 'isolated receipt fixture failure'; END IF; RETURN NEW; END $$`,
+  );
+  await db.$executeRawUnsafe(
+    "CREATE TRIGGER ci_receipt_failure BEFORE INSERT ON public.receipts FOR EACH ROW EXECUTE FUNCTION public.ci_receipt_failure()",
+  );
+  try {
+    assert.equal((await req("/api/admin/jobs/outbox", {}, owner)).status, 503);
+    assert.equal((await snapshot(o.id)).paymentStatus, "PAID");
+    assert.equal(
+      (
+        await db.notificationOutbox.findFirstOrThrow({
+          where: { orderId: o.id },
+        })
+      ).state,
+      "QUEUED",
+    );
+    assert.equal(await db.receipt.count({ where: { orderId: o.id } }), 0);
+  } finally {
+    await db.$executeRawUnsafe(
+      "DROP TRIGGER ci_receipt_failure ON public.receipts",
+    );
+    await db.$executeRawUnsafe("DROP FUNCTION public.ci_receipt_failure()");
+  }
+  assert.equal((await req("/api/admin/jobs/outbox", {}, owner)).status, 200);
+  assert.equal(await db.receipt.count({ where: { orderId: o.id } }), 1);
+});

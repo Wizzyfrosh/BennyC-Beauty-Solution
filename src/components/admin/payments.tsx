@@ -60,8 +60,8 @@ export function PaymentWorkspace() {
           <p className="eyebrow">Owner financial controls</p>
           <h1>Payments & resolution</h1>
           <p>
-            Latest 50 website orders. No live payments enabled. Refunds never
-            restock physical units.
+            Latest 50 orders across recorded channels. No live payments enabled.
+            Refunds never restock physical units.
           </p>
         </div>
       </div>
@@ -127,6 +127,17 @@ function FinancialCard({
           ? { providerRefundReference: String(form.get("providerId")) }
           : {}),
         ...(form.get("simulate") ? { simulateSuccess: true } : {}),
+        ...(form.get("manualConfirmed")
+          ? {
+              manualConfirmation: {
+                method: String(form.get("manualMethod")),
+                confirmed: true,
+                ...(form.get("manualReference")
+                  ? { reference: String(form.get("manualReference")) }
+                  : {}),
+              },
+            }
+          : {}),
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not record refund.");
@@ -245,6 +256,28 @@ function FinancialCard({
                 <input type="checkbox" name="simulate" /> Confirm simulated
                 refund (simulated payments only)
               </label>
+            )}
+            {successful.some(
+              (a) => a.provider === "MANUAL" && a.paymentMode === "LIVE",
+            ) && (
+              <>
+                <label>
+                  Actual refund channel
+                  <select name="manualMethod">
+                    <option>CASH</option>
+                    <option>BANK_TRANSFER</option>
+                    <option>POS</option>
+                  </select>
+                </label>
+                <label>
+                  Verified transfer/POS reference
+                  <input name="manualReference" maxLength={100} />
+                </label>
+                <label>
+                  <input name="manualConfirmed" type="checkbox" /> I verified
+                  the actual refund channel. A screenshot is insufficient.
+                </label>
+              </>
             )}
             <button className="button">Verify and record refund</button>
           </fieldset>
