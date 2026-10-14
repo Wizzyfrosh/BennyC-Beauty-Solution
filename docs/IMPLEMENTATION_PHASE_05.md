@@ -31,13 +31,21 @@ Apply all migrations and `scripts/grant-phase5.sql` after earlier grants. Keep t
 
 | Check | Status | Evidence |
 | --- | --- | --- |
-| Local build/types/lint | PASS at implementation checkpoint | `npm run build`, `npm run typecheck`, `npm run lint` on managed Linux/Node 24 |
+| Build/types/lint | PASS | `npm run build`, `npm run typecheck`, `npm run lint`; local checkpoint and final Ubuntu/Node 24 CI |
 | Unit rules | PASS | `npm test`: 10 tests, zero failures |
-| PostgreSQL report/access/recovery regressions | PENDING | New CI suite has not yet completed |
-| Disposable backup/restore | PENDING | New CI rehearsal has not yet completed |
+| PostgreSQL report/access/recovery regressions | PASS | All 54 real PostgreSQL/HTTP tests, zero failures, restricted runtime role and actual maintained auth |
+| Disposable backup/restore | PASS, isolated CI only | All 32 table fingerprints matched; 13 receipt-backed batches reconciled; restored login, runtime privileges, restrictive function ACLs and constraints verified |
 | Actual browser/operator/merchant/media gates | PENDING | No supported browser control or actual provider/real-shop configuration evidence |
 | G5 operating/launch readiness | PENDING | Verified real data, operator/support, host monitoring/scheduling/rate limits/retention, production/asset recovery, budget and explicit launch authorization outstanding |
 
 No dependency version or npm lockfile change. Production checkout/live payment remain closed. The trusted terminal is an administrative boundary; it does not replace identity verification or secret stewardship. Host-specific proxy/IP throttling cannot be safely assumed before a host is chosen. Existing database-backed auth/guest limits continue; production load and trusted ingress configuration remain pending.
 
-Next task: verify the added PostgreSQL/HTTP and restore tests in disposable CI, record exact evidence, then complete the first outstanding supported-browser/media/merchant gate. No merge, deployment or paid pilot is performed by this phase.
+## Final CI evidence
+
+Application revision: `f5d74fe5e6199c2f2816b3426a196589c707848e`; exact source tree: `c7d7481e795bffe429f34df3ea7c8ff6885161f3`. Run: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38561497710, job 115843412753, completed successfully 14 October 2026 UTC. Build/typecheck/lint, all five migrations and runtime grant files, repeated seed, 10 unit tests, all 54 integration tests and the dump/restore rehearsal passed. The final evidence checkpoint changes documentation only.
+
+TC27 passed owner authorization, bounded calendar dates, Lagos midnight boundaries, explicit real/demo separation, historical/partial refunds, negative net flow, extra captures/refunds, allocation-aware current stock and formula-safe CSV. FR16/TR04/TR07/TR09 passed owner-only settings without demo-mode switching, restricted membership mutation, concurrent last-owner protection/session revocation, trusted staff provisioning/password recovery, authenticator enrollment/old-session revocation, encrypted recovery data, one-time code reuse rejection, production owner enrollment/challenge checks and dedicated machine credentials with stable job retries/lease recovery. Prior catalogue/stock/checkout/payment faults remain green. TC28's disposable data/permission/auth/receipt-backed-ledger restoration checks passed; actual production/provider reconciliation and image-byte recovery remain pending, not inferred from fixture fingerprints.
+
+First run 38533387923 stopped at the fifth migration because `current_role` was used as a reserved PL/pgSQL variable; it was renamed. Run 38533639848 applied all migrations and passed 51 of 54 integration tests. Its remaining failures were the legacy expectation of an absent staff-management route, the maintained library's 401 rejection of a consumed backup code (not 400), and the legacy overview handler hiding the MFA-required error code. The tests were aligned to the implemented denial contracts and the overview handler now preserves the setup-required code/message. Restore grants also explicitly revoke PUBLIC execution because a no-ACL restore recreates default function permissions; the rehearsal verifies this boundary. No failed test was disabled or bypassed.
+
+Next task: complete supported-browser phone/desktop/keyboard review, configured Cloudinary upload and the actual dedicated merchant test/callback/webhook/refund evidence. Collect independently verified owner inputs and operator/support/host/recovery configuration before G5. No merge, deployment or paid pilot is performed by this phase.

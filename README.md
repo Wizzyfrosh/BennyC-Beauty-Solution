@@ -44,7 +44,7 @@ psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase4.sql
 psql "$DIRECT_URL" -v runtime_role=bennyc_runtime -f scripts/grant-phase5.sql
 ```
 
-Phase 2 grants catalogue/balance/order writes used by server-authorized services, plus insert-only audit/movement history. The grant scripts do not grant application DDL, staff membership writes or history rewrites.
+Phase 2 grants catalogue/balance/order writes used by server-authorized services, plus insert-only audit/movement history. The grant scripts do not grant application DDL, direct staff membership writes or history rewrites. Phase 5 membership management uses the narrowly validated owner function, not direct runtime table updates.
 
 7. For sample data, set `BENNYC_DEMO_DATA=true` and `SEED_DATABASE_NAME=bennyc_development`, matching the actual database. Then run:
 
