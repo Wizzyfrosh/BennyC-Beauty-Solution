@@ -27,8 +27,26 @@ Private test walkthrough: receive sample stock → guest checkout → open Payst
 
 ## Evidence at implementation checkpoint
 
-Eight focused unit tests pass. Local typecheck/lint/build are being finalized and new PostgreSQL fault tests are queued for GitHub CI. CI's isolated loopback provider fixture exercises real HTTP/signature/server verification, database locks, snapshots and authorization; it does **not** prove an actual Paystack merchant transaction or settlement. G4 remains **PENDING** real provider test evidence, supported browser/pitch checks and authorized external notification integration.
+Local typecheck/lint/build and eight focused unit tests pass. Final GitHub CI passed build/typecheck/lint, four migrations/runtime grants, repeated seed and all 44 PostgreSQL/HTTP integration tests on `fc914a3e1e74f18db924c903b10d2c7481bcf0b4`. Run: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38527925395. CI's isolated loopback provider fixture exercises real HTTP/signature/server verification, database locks, snapshots and authorization; it does **not** prove an actual Paystack merchant transaction or settlement. G4 remains **PENDING** real provider test evidence, supported browser/pitch checks and authorized external notification integration.
 
 No new dependency/lockfile change. New modules are `src/features/payments/{provider,service,confirmation,rules,owner-service,refund-events,outbox}.ts`, the fourth migration/runtime grant, customer payment/receipt routes/components, owner resolution UI and `tests/integration/payments.test.ts`.
 
 Limits: only development test mode is supported; customer checkout still uses isolated sample data. Manual dashboard refund initiation is intentional and explicitly documented. Jobs are bounded (20 records), owner-triggered and not scheduled. Queue/financial list remains the latest 50 orders. Production retention, notification sender, machine-job authentication/scheduling, trusted network throttling and paid launch are later operating decisions. Pending external refund conflicts require owner review rather than silent state rewrites.
+
+## Phase report
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Build/types/lint | PASS | `npm run build`, `npm run typecheck`, `npm run lint`; local and final GitHub Ubuntu/Node 24 job |
+| Unit tests | PASS | `npm test`: eight tests, zero failures |
+| PostgreSQL fault/regression suite | PASS | `npm run test:integration`: 44 tests, zero failures; real restricted runtime role/HTTP sessions, isolated provider fixture |
+| Outage/publication recovery | PASS | Provider 503 leaves order pending; forced receipt insert failure preserves paid order and queued task; retry publishes once |
+| Money/physical separation | PASS | Late and extra charges retained; pending/partial/extra refunds derived separately; physical returns enter quarantine; no refund restocking |
+| Production guard/privacy | PASS | Production HTTP rejects test initialization/simulation; scoped reads and verification omit private internals |
+| Actual Paystack merchant gate | PENDING | Test credentials, actual test charge/refund and callback/webhook delivery not supplied/configured |
+| External notifications | PENDING | No sender chosen/authorized; private in-app outbox/receipt target is implemented |
+| Browser/pitch/media | PENDING | Supported browser/keyboard/phone/desktop review and real Cloudinary upload remain outstanding |
+
+No package/lockfile change. Application source tree exactly matches `16caec13e5c47ef0a17396a4adcd2564beb9e38c`. The docs-only evidence checkpoint preserves this tested code. Refund notifications arriving before a capture can be verified, unknown references and overlapping external refund conflicts remain durable observations for reconciliation/owner review; production readiness requires actual provider fault evidence rather than inferring unsupported financial facts.
+
+Next: privately configure the dedicated merchant test environment and complete the provider/browser/media evidence. Add an authorized notification sender and hosted job scheduling only with actual operating configuration. The branch remains a draft for review; no merge or live activation occurs in this phase.

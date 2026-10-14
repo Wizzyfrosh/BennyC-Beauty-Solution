@@ -2,14 +2,14 @@
 
 Updated: 14 October 2026 UTC. Implementation branch: `codex/phase-1-foundation`.
 
-Phase 1 application code has been implemented against the complete specification. The user-selected teal reference replaces the earlier plum design proposal. No production database, live merchant account, real shop data or public deployment has been configured.
+Phases 1–4 application code have been implemented for review against the specification; remaining gates are recorded below. The user-selected teal reference replaces the earlier plum design proposal. No production database, live merchant account, real shop data or public deployment has been configured.
 
 | Gate | Status | Evidence/blocker |
 | --- | --- | --- |
 | G1 — Foundation, catalogue, staff | **PENDING verification** | Build/typecheck/lint, 2 unit tests and 10 real PostgreSQL/auth integration tests passed. Phone/desktop browser review is pending. |
 | G2 — Catalogue operations/inventory | PENDING verification | Phase 2 code implemented; local build/typecheck/lint and 4 unit tests pass. PostgreSQL suite passed on f264eaf: 20 integration tests including stock races/retries, permissions and upload validation. Configured Cloudinary upload and browser review remain pending. |
 | G3 — Customer orders/pitch demo | PENDING verification | Phase 3 code implemented; build/typecheck/lint, six unit and 32 PostgreSQL integration tests pass on 6469d4e. Browser/pitch checks remain pending. |
-| G4 — Payments/order handling | PENDING verification | Phase 4 test-provider code implemented; actual merchant test payment/notification integration and final CI evidence pending. No live credentials used. |
+| G4 — Payments/order handling | PENDING verification | Phase 4 code implemented; build/typecheck/lint, eight unit and 44 PostgreSQL integration tests pass on fc914a3. Actual merchant test payment, external notifications and browser evidence remain pending. No live credentials used. |
 | G5 — Launch/operating readiness | PENDING | No production launch authorized or performed |
 
 ## Implemented Phase 1 scope
@@ -82,4 +82,16 @@ G1/G2/G3 remain PENDING their outstanding phone/desktop/keyboard/media/pitch evi
 
 ## Phase 4 implementation — 14 October 2026
 
-FR11–FR14/TR03–TR06/TR08–TR09 test payment and resolution code is implemented with user authorization. See IMPLEMENTATION_PHASE_04.md. Eight unit tests pass; final build/typecheck/lint and expanded PostgreSQL fixture tests are being verified. Real Paystack merchant test credentials/transaction evidence remain pending. Private in-app receipts are implemented; external email/SMS notifications are not configured or sent. No live payment, production database, public deployment or actual refund initiation was performed.
+FR11–FR14/TR03–TR06/TR08–TR09 test payment and resolution code is implemented with user authorization. See IMPLEMENTATION_PHASE_04.md. Build/typecheck/lint, eight unit tests and 44 real PostgreSQL/HTTP integration tests pass on fc914a3. Real Paystack merchant test credentials/transaction evidence remain pending. Private in-app receipts are implemented; external email/SMS notifications are not configured or sent. No live payment, production database, public deployment or actual refund initiation was performed.
+
+## Verified Phase 4 evidence
+
+Application revision: `fc914a3e1e74f18db924c903b10d2c7481bcf0b4`; exact uploaded source tree: `16caec13e5c47ef0a17396a4adcd2564beb9e38c`. Final run: https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38527925395, job 115732592145. Build/typecheck/lint, all four migrations/runtime grants, repeated seed, eight unit tests and 44 PostgreSQL/HTTP integration tests passed with zero failures. Final documentation commit does not change the tested application.
+
+TC14 passed initialization retry, signed raw-body authentication, duplicate webhook/browser confirmation, saved amount/currency/reference/environment mismatch rejection and sanitized event retention. TC15 passed late full-basket reallocation, paid stock-shortfall exception/refund obligation, cancelled-order preservation and two separately retained captured charges. TC16 passed owner-only paid cancellation, pending versus processed provider refunds, partial refund webhooks, extra-charge refunds without changing the original payment, bounded physical quarantine returns/retries, sample counter refunds and actual-channel declaration requirements for isolated manual counter fixtures. TC17 passed reconciliation without the customer browser, private receipt publication, protected jobs, provider outage without false payment, and forced PostgreSQL receipt-publication failure: the paid order and queued task survived and retry published one receipt. TC13/verification responses preserve private scope and omit internal exception codes. Earlier auth/catalogue/inventory/checkout regression tests remain green. Production-mode HTTP tests deny simulation, guest checkout and test-provider initialization even with test flags enabled.
+
+Provider evidence is an isolated CI fixture, not a real Paystack merchant test or settlement. First Phase 4 revision 735bc2e passed 41 integration tests (run 38526541599). Revision 552d698 passed 43 of 44; the outage fixture incorrectly returned 503 to its own control request. The fixture was corrected without changing application validation; revision 3395359 passed all 44 (run 38527525273). The final revision also verifies limited customer payment responses. The forced receipt-error fixture uses DDL only on the disposable CI database; application runtime DDL remains denied.
+
+G4 is **PENDING** actual Paystack test credentials/merchant transaction and provider callback/webhook/refund evidence, supported browser/pitch checks and authorized external notification integration. Private in-app receipts are complete; no email/SMS sender is configured or used. Hosting scheduler/machine-job authentication remains operating-readiness work. No real refund or live payment was initiated; no production database, paid service, public website deployment or merge was performed.
+
+Next concrete task: configure a dedicated development Paystack test key privately outside chat, complete one merchant test transaction and verify its callback/webhook/reconciliation/refund against the recorded order and stock; complete supported phone/desktop/keyboard and configured-media review. Choose/authorize an external notification sender before implementing delivery and its evidence. Phase 5 reports/recovery/operating setup remain later work.
