@@ -4,6 +4,7 @@ import { Boxes, Package, ShoppingBag } from "lucide-react";
 import { getStaffOverview } from "@/server/overview";
 import { isServerConfigured } from "@/server/env";
 import { StaffAccessError } from "@/server/staff";
+import Link from "next/link";
 export default async function Admin() {
   if (!isServerConfigured()) return null;
   const { member, counts } = await getStaffOverview(await headers()).catch(
@@ -41,22 +42,28 @@ export default async function Admin() {
           <Boxes size={28} strokeWidth={1.2} />
           <h2>Inventory workspace</h2>
           <p>
-            Product editing, stock receiving and shop sales will be added in the
-            next stage.
+            Receive stock, inspect batches, and review stock movements and
+            expiry alerts.
           </p>
+          <Link className="text-link" href="/admin/inventory">
+            Open inventory
+          </Link>
         </div>
         <div className="info-card">
           <ShoppingBag size={28} strokeWidth={1.2} />
           <h2>Orders workspace</h2>
           <p>
-            Online orders will appear here once checkout is ready. Orders and
-            payments are not enabled yet.
+            Record completed shop or WhatsApp sales after verifying payment and
+            handover. Online checkout is coming later.
           </p>
+          <Link className="text-link" href="/admin/sales/new">
+            Record a sale
+          </Link>
         </div>
       </div>
       <p className="notice">
-        These figures count catalogue records only. Stock availability and sales
-        figures have not been introduced.
+        These figures count catalogue records only. View inventory for stock
+        balances and the sales workspace for completed sale records.
       </p>
     </>
   );

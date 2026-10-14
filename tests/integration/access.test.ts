@@ -265,7 +265,7 @@ test("TC04 logout and expired sessions cannot be replayed", async () => {
     401,
   );
 });
-test("TR04 runtime role cannot write staff roles, edit catalogue or perform DDL", async () => {
+test("TR04 runtime role cannot write staff roles, alter history or perform DDL", async () => {
   const who = await appDb.$queryRaw<
     Array<{ name: string; role: string }>
   >`SELECT current_database() AS name,current_user AS role`;
@@ -283,7 +283,7 @@ test("TR04 runtime role cannot write staff roles, edit catalogue or perform DDL"
     /permission denied|42501/,
   );
   await assert.rejects(
-    appDb.product.updateMany({ data: { brand: "tampered" } }),
+    appDb.inventoryMovement.updateMany({ data: { reason: "tampered" } }),
     /permission denied|42501/,
   );
 });

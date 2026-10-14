@@ -32,6 +32,13 @@ export function VariantPicker({ variants }: { variants: PublicVariant[] }) {
         </div>
       </fieldset>
       <p className="sku-note">SKU: {selected.sku}</p>
+      {selected.availableQty !== undefined && (
+        <p className="stock-label" aria-live="polite">
+          {selected.availableQty > 0
+            ? `${selected.availableQty} available`
+            : "Currently unavailable"}
+        </p>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import "server-only";
+import { publicAvailability } from "../inventory/read-service";
 import { getDb } from "@/server/db";
 import { isServerConfigured } from "@/server/env";
 import {
@@ -53,8 +54,20 @@ export async function getCatalogue(
       ],
       { isolationLevel: "RepeatableRead" },
     );
+    const availability = await publicAvailability(
+      rows.flatMap((row) => row.variants.map((v) => v.id)),
+    );
     return {
-      products: rows.map(projectProduct),
+      products: rows.map((row) => {
+        const p = projectProduct(row);
+        return {
+          ...p,
+          variants: p.variants.map((v) => ({
+            ...v,
+            availableQty: availability.get(v.id) ?? 0,
+          })),
+        };
+      }),
       categories,
       brands: brands.map((b) => b.brand),
       total,
@@ -74,7 +87,21 @@ export async function getProduct(
       where: { ...publicProductWhere(), slug },
       select: publicProductSelect,
     });
-    return { product: row ? projectProduct(row) : null, unavailable: false };
+    if (!row) return { product: null, unavailable: false };
+    const availability = await publicAvailability(
+      row.variants.map((v) => v.id),
+    );
+    const product = projectProduct(row);
+    return {
+      product: {
+        ...product,
+        variants: product.variants.map((v) => ({
+          ...v,
+          availableQty: availability.get(v.id) ?? 0,
+        })),
+      },
+      unavailable: false,
+    };
   } catch {
     console.error("Product dependency unavailable");
     return { product: null, unavailable: true };

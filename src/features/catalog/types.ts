@@ -3,6 +3,7 @@ export type PublicVariant = {
   label: string;
   sku: string;
   priceKobo: number;
+  availableQty?: number;
 };
 export type PublicProduct = {
   id: string;

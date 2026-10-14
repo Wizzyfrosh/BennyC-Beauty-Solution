@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, Store } from "lucide-react";
+import { AdminNav } from "@/components/admin/nav";
 import { Brand } from "@/components/brand";
 import { SignOutButton } from "@/components/sign-out-button";
 import { requireStaffPage } from "@/server/staff";
@@ -30,14 +30,7 @@ export default async function AdminLayout({
       <aside className="admin-sidebar">
         <Brand dark />
         <p className="eyebrow">Store workspace</p>
-        <nav>
-          <Link href="/admin" className="active">
-            <LayoutDashboard size={18} /> Overview
-          </Link>
-          <Link href="/shop">
-            <Store size={18} /> View storefront
-          </Link>
-        </nav>
+        <AdminNav owner={member.role === "OWNER"} />
         <div className="sidebar-bottom">
           <strong>{member.name}</strong>
           <span>

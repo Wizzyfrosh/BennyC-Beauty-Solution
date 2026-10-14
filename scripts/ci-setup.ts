@@ -23,6 +23,12 @@ try {
     .join("\n")
     .replaceAll(':"runtime_role"', '"bennyc_ci_runtime"');
   await client.query(sql);
+  const phase2 = (await readFile("scripts/grant-phase2.sql", "utf8"))
+    .split("\n")
+    .filter((line) => !line.startsWith("\\"))
+    .join("\n")
+    .replaceAll(':"runtime_role"', '"bennyc_ci_runtime"');
+  await client.query(phase2);
   url.username = "bennyc_ci_runtime";
   url.password = password;
   await appendFile(
