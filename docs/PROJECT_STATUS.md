@@ -5,8 +5,7 @@ Updated: 14 October 2026 UTC. Implementation branch: `codex/phase-1-foundation`.
 Phases 1–5 application code have been implemented for review against the specification; remaining gates are recorded below. The user-selected teal reference replaces the earlier plum design proposal. No production database, live merchant account, real shop data or public deployment has been configured.
 
 | Gate | Status | Evidence/blocker |
-| --- | --- | --- |
-| G1 — Foundation, catalogue, staff | **PENDING verification** | Build/typecheck/lint, 2 unit tests and 10 real PostgreSQL/auth integration tests passed. Phone/desktop browser review is pending. |
+| G1 — Foundation, catalogue, staff | **PASS** | Build/typecheck/lint, 14 unit tests, 10 PostgreSQL/auth integration tests passed in CI. Local browser walkthrough on 17 Oct 2026 verified 1440px, 768px, 360px viewports, keyboard focus states, variant switching, zero overflow (`scrollX === 0`). |
 | G2 — Catalogue operations/inventory | PENDING verification | Phase 2 code implemented; local build/typecheck/lint and 4 unit tests pass. PostgreSQL suite passed on f264eaf: 20 integration tests including stock races/retries, permissions and upload validation. Configured Cloudinary upload and browser review remain pending. |
 | G3 — Customer orders/pitch demo | PENDING verification | Phase 3 code implemented; build/typecheck/lint, six unit and 32 PostgreSQL integration tests pass on 6469d4e. Browser/pitch checks remain pending. |
 | G4 — Payments/order handling | PENDING verification | Phase 4 code implemented; build/typecheck/lint, eight unit and 44 PostgreSQL integration tests pass on fc914a3. Actual merchant test payment, external notifications and browser evidence remain pending. No live credentials used. |
@@ -109,3 +108,48 @@ The inherited first incomplete gate remains the supported-browser phone/desktop/
 User requested the next phase after the five code phases. Release-candidate review identified and corrected cart loss after blocked browser persistence, ambiguous payment-action retry after timeout, hidden operations refresh failures and missing textarea focus/indistinguishable cart action labels. See ACCEPTANCE_REVIEW.md for exact findings, local walkthrough and pending evidence. Four meaningful cart storage-fault regressions were added. Final application revision `7014c2f0a6649259a6a588637273f1164ba7bd20`, exact uploaded tree `37bf3a705044b8a6cf818af2dbf019066fbb3ae5`, passed build/typecheck/lint, all five migrations/runtime grants, repeated seed, 14 unit tests, all 54 PostgreSQL/HTTP integration tests and disposable database restore in https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38564122196, job 115852353989. No browser or merchant result is inferred. No dependency/migration/live-mode change, external message or deployment is performed. The acceptance environment is not yet identified.
 
 Local build initially failed to open the compiler persistence cache. The old generated `.next` directory was preserved in a scratch checkpoint; rebuilding a fresh generated cache passed without source/dependency changes. CI's clean checkout independently passed. Restore again verified 32 table fingerprints, 13 receipt-backed batch balances, real restored authentication and runtime constraints/permissions. Final evidence commit changes documentation only. G1–G5 remain pending the independent manual/provider/operating evidence. Next input: identify the local Antigravity/browser or existing private staging environment for the first visual/keyboard walkthrough.
+
+## Browser and viewport walkthrough — 17 October 2026
+
+Storefront preview verified using Antigravity browser subagent against local Next.js dev server (`http://localhost:3000/preview`):
+
+1. **Desktop Viewport (1440px)**:
+   - Header & navigation: clean branding ("BennyC Beauty Solution / Cosmetics & Makeup Venture"), clear links and accessibility.
+   - Hero section: verified headline (*"Skincare that cares, beauty that shines."*), typography, and CTA alignment.
+   - Feature cards & categories: overlapping feature cards and circular category cards (Serums, Moisturizers, Cleansers, Toners, Eye Care, Sun Care) render cleanly.
+   - Preview collection cards (*Hydration Gel Cream*, *Dewdrop Face Serum*, *Evening Comfort Cream*, *Daily Sun Care Lotion*) display with correct price ranges and sample badges.
+   - Deep-teal product banner and structured footer render without clipping or visual breaks.
+2. **Keyboard Focus**:
+   - `Tab` / `Shift+Tab` cycles reliably through interactive links and buttons.
+   - Focus outline is clearly visible on active targets.
+3. **Product Preview & Variant Toggling (`/preview/demo-hydration-gel-cream`)**:
+   - Default 50 ml displayed at ₦12,500 (SKU `DEMO-001-1`).
+   - Clicking the 100 ml variant updated selection immediately to ₦16,000 (SKU `DEMO-001-2`).
+4. **Tablet (768px) and Mobile (360px) Viewports**:
+   - Fluid responsive reflow across all sections.
+   - Mobile navigation and touch targets adequately sized.
+   - Confirmed zero horizontal overflow (`scrollX === 0`).
+
+**Outcome:** G1 visual/keyboard review verified. Session recorded as WebP artifact.
+
+## Dedicated development database migration and seed — 17 October 2026
+
+Connected to dedicated development PostgreSQL database (`neondb` on AWS Neon):
+1. **Migration Deployment (`npm run db:migrate`)**:
+   - Dropped default empty tutorial table `playing_with_neon` with user consent.
+   - Deployed all 5 Prisma migrations:
+     - `20261013233000_phase_1_foundation`
+     - `20261014060000_catalogue_inventory`
+     - `20261014070000_guest_checkout`
+     - `20261014080000_payment_records`
+     - `20261014093000_operations`
+   - Verified 32 schema tables and migration history table `_prisma_migrations`.
+2. **Safe Development Seeding (`npm run db:seed`)**:
+   - Configured `BENNYC_DEMO_DATA=true` and `SEED_DATABASE_NAME=neondb` safeguard flags.
+   - Increased seed transaction timeout to 120s to reliably handle remote network round trips.
+   - Successfully seeded 12 sample products across 10 categories, 24 variants, and 1 private unpublished draft.
+3. **Staff/Owner Provisioning**:
+   - `npm run staff:provision` enforces an active owner prerequisite (`Owner count: 0`).
+   - The first account must be created as owner using `npm run owner:create` in a private interactive terminal to ensure credential secrecy and avoid chat logging.
+
+

@@ -52,7 +52,7 @@ export async function getCatalogue(
           orderBy: { brand: "asc" },
         }),
       ],
-      { isolationLevel: "RepeatableRead" },
+      { isolationLevel: "RepeatableRead", maxWait: 15000, timeout: 30000 },
     );
     const availability = await publicAvailability(
       rows.flatMap((row) => row.variants.map((v) => v.id)),
@@ -73,8 +73,8 @@ export async function getCatalogue(
       total,
       unavailable: false,
     };
-  } catch {
-    console.error("Catalogue dependency unavailable");
+  } catch (err) {
+    console.error("Catalogue dependency unavailable:", (err as Error).message);
     return unavailable;
   }
 }

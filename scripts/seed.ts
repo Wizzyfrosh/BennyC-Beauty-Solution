@@ -120,7 +120,7 @@ async function main() {
           update: {},
         });
       },
-      { timeout: 30000 },
+      { timeout: 120000, maxWait: 20000 },
     );
     console.log(
       "Development fixtures ready: 12 sample products and 1 unpublished draft. No stock or sales invented.",

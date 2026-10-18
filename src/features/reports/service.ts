@@ -162,7 +162,7 @@ export async function report(
         variants: rows,
       };
     },
-    { isolationLevel: "RepeatableRead", timeout: 15000 },
+    { isolationLevel: "RepeatableRead", maxWait: 15000, timeout: 30000 },
   );
 }
 export function reportCSV(data: Awaited<ReturnType<typeof report>>) {
