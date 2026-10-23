@@ -1,8 +1,18 @@
 # Project status and gate evidence
 
-Updated: 14 October 2026 UTC. Implementation branch: `codex/phase-1-foundation`.
+## Storefront motion and backend preparation — 14 October 2026
 
-Phases 1–5 application code have been implemented for review against the specification; remaining gates are recorded below. The user-selected teal reference replaces the earlier plum design proposal. No production database, live merchant account, real shop data or public deployment has been configured.
+User requested animations and PostgreSQL/staff setup. FR01/FR02 design interactions now include a brief hero entrance, once-per-entry section/card reveals, fine-pointer hover lift/zoom and touch button feedback. A small shared client observer handles route/filter changes; content remains visible without JavaScript and reduced-motion preference disables animation. No dependency, lockfile, schema, catalogue or payment behavior changes.
+
+Local `npm run typecheck`, `npm run lint`, `npm test` (14 passed, zero failures), `npm run build` and source Prettier checks passed. The final build includes TypeScript validation. Rendered motion on phone/desktop, reduced-motion behavior and keyboard QA remain PENDING; the supplied still screenshots cannot verify animation. G1–G5 remain PENDING their independent evidence. CI for this revision will be recorded after the branch is saved.
+
+Saved application revision: `ca0e7b3ed90951610f4eaff6a57f46f42de64ec7`, exact local/uploaded tree `81241b88e421c34cfcc463c0daf69bf0a268ed5b`. CI https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38615029131, job 116027805811, passed build/typecheck/lint, unit tests, all PostgreSQL/HTTP integration checks, five migrations/grants/repeated seed and disposable backup/restore. Final evidence/design-preference updates are documentation only. PR #2 remains open; these animations have not been deployed to the user's production site. The design brief records the requested motion style for future work.
+
+Account setup is PENDING: Neon and Vercel were identified as available integrations but neither connection is confirmed. [VERCEL_BACKEND_SETUP.md](VERCEL_BACKEND_SETUP.md) documents separate runtime/migration credentials, existing grants, real-store settings initialization without demo seeding and trusted first-owner/MFA setup. No account resource, database migration, secret configuration or owner was created. Next task: connect the accounts, identify the existing Vercel project and isolated database, then complete private setup; review deployed motion on a phone.
+
+Updated: 14 October 2026 UTC. Phases 1–5 were reviewed on `codex/phase-1-foundation` and merged into `main` through PR #1 with explicit user authorization. Current mobile review: `codex/mobile-visual-review`.
+
+Phases 1–5 application code have been implemented against the specification; remaining gates are recorded below. The user-selected teal reference replaces the earlier plum design proposal. The user deployed the application to https://benny-c-beauty-solution.vercel.app. No verified production database, live merchant activation or actual shop-data readiness is recorded; a hosted design review does not clear those gates.
 
 | Gate | Status | Evidence/blocker |
 | G1 — Foundation, catalogue, staff | **PASS** | Build/typecheck/lint, 14 unit tests, 10 PostgreSQL/auth integration tests passed in CI. Local browser walkthrough on 17 Oct 2026 verified 1440px, 768px, 360px viewports, keyboard focus states, variant switching, zero overflow (`scrollX === 0`). |
@@ -10,6 +20,16 @@ Phases 1–5 application code have been implemented for review against the speci
 | G3 — Customer orders/pitch demo | PENDING verification | Phase 3 code implemented; build/typecheck/lint, six unit and 32 PostgreSQL integration tests pass on 6469d4e. Browser/pitch checks remain pending. |
 | G4 — Payments/order handling | PENDING verification | Phase 4 code implemented; build/typecheck/lint, eight unit and 44 PostgreSQL integration tests pass on fc914a3. Actual merchant test payment, external notifications and browser evidence remain pending. No live credentials used. |
 | G5 — Launch/operating readiness | PENDING verification | Phase 5 build/types/lint, 10 unit and 54 PostgreSQL/HTTP tests plus disposable restore passed on f5d74fe. Real data, operator training, hosted/asset recovery/configuration and launch authorization remain pending. |
+
+## User-supplied mobile screenshots — 14 October 2026
+
+FR01/TR07/TC30 partial visual evidence: IMG_0850.jpeg, IMG_0851.jpeg and IMG_0852.jpeg show the hosted mobile header/hero, feature panel, category imagery, ritual banner, service panel and footer rendered. The screenshots show the database-backed homepage (Featured products / Our collection is being prepared), not `/preview` (The preview collection / explicit sample notice). The missing featured cards are consistent with the intentionally unavailable catalogue state; they are not evidence of failed image delivery. The read-only fixture with four sample cards is https://benny-c-beauty-solution.vercel.app/preview. Do not fabricate live products to conceal unavailable database setup.
+
+The Our story arrow renders as a blue platform emoji in IMG_0850. It is replaced with the existing Lucide SVG icon, marked decorative inside its unchanged circle/label. This is a bounded presentation correction; no new dependency, data, payment or auth change. Local typecheck/lint/build passed. Application 5058857762c325fb4763cd4bd222a414de7324a2, exact source tree 4fec47038af9cdab0d83adb59e7ab14765e50dc1, passed build/typecheck/lint, 14 unit tests, 54 PostgreSQL/HTTP tests, five migrations/runtime grants/repeated seed and disposable restore in https://github.com/Wizzyfrosh/BennyC-Beauty-Solution/actions/runs/38610487056, job 116012238841. Restore verified 32 tables and 13 receipt-backed batches. Evidence follow-up changes documentation only. Browser interaction, actual CSS viewport measurements, keyboard/contrast audit, tablet/desktop comparison, sample product-card screenshots and media/merchant gates remain pending. Screenshots alone do not prove those checks or exact reference fidelity. The iOS address/status bars are browser chrome, not page overlays to remove from the app.
+
+Follow-up screenshots IMG_0853.jpeg and IMG_0854.jpeg show `/preview`'s four sample cards in two phone columns with readable product names, SAMPLE labels, option counts, NGN starting prices and View product links. They also show the Daily Sun Care Lotion detail, illustrative-packaging/demo labels, 50 ml selected at ₦11,500, 100 ml option and SKU DEMO-004-1. Captured collection/detail presentation is observed; the exact CSS viewport, full-page overflow/focus/contrast and option-change interaction are not measured by these screenshots. This closes the earlier missing sample-card screenshot evidence, not the complete G1/TC30 gate. The app still has not been independently checked in a controlled browser.
+
+Next: verify selecting 100 ml changes the Daily Sun Care Lotion price to ₦15,000 and selecting 50 ml restores ₦11,500, using the existing fixture's independent option prices. Tablet/desktop/keyboard and remaining manual checks remain pending. Then connect the separately authorized PostgreSQL/auth/catalogue configuration; the screenshot does not prove that the real shop backend is configured.
 
 ## Implemented Phase 1 scope
 

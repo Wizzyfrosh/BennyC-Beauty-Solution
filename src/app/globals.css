@@ -2150,6 +2150,126 @@ summary:focus-visible {
   }
 }
 
+/* Storefront motion: brief entrances, progressive scroll reveals and touch
+   feedback. No perpetual animation, scroll interception or hidden baseline. */
+@keyframes benny-reveal {
+  from {
+    opacity: 0.65;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes benny-hero-image {
+  from {
+    transform: scale(1.045);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes benny-hero-copy {
+  from {
+    opacity: 0.65;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-image {
+    animation: benny-hero-image 1.2s cubic-bezier(0.2, 0.7, 0.25, 1) both;
+  }
+  .hero-copy > * {
+    animation: benny-hero-copy 0.55s cubic-bezier(0.2, 0.7, 0.25, 1) backwards;
+  }
+  .hero-copy > :nth-child(2) {
+    animation-delay: 70ms;
+  }
+  .hero-copy > :nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .hero-copy > :nth-child(4) {
+    animation-delay: 170ms;
+  }
+  .hero-copy > :nth-child(5) {
+    animation-delay: 220ms;
+  }
+  .motion-enter {
+    animation: benny-reveal 0.55s cubic-bezier(0.2, 0.7, 0.25, 1) backwards;
+  }
+  .category-item.motion-enter:nth-child(3n + 2),
+  .product-card.motion-enter:nth-child(3n + 2) {
+    animation-delay: 65ms;
+  }
+  .category-item.motion-enter:nth-child(3n),
+  .product-card.motion-enter:nth-child(3n) {
+    animation-delay: 130ms;
+  }
+  .motion-enter:focus-within,
+  .hero-copy > :focus-within {
+    animation: none;
+  }
+  .button,
+  .small-button,
+  .outline-button {
+    transition:
+      background-color 0.2s,
+      color 0.2s,
+      transform 0.2s,
+      box-shadow 0.2s;
+  }
+  .button:active,
+  .small-button:active,
+  .outline-button:active {
+    transform: scale(0.98);
+  }
+  .variant-options input + span {
+    transition:
+      background-color 0.18s,
+      border-color 0.18s;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .product-card:hover,
+  .product-card:focus-within {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 28px #24564016;
+  }
+  .product-photo-link .product-image {
+    transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.25, 1);
+  }
+  .product-photo-link {
+    overflow: hidden;
+  }
+  .product-photo-link:hover .product-image {
+    transform: scale(1.035);
+  }
+  .category-item:hover .product-image {
+    transform: translateY(-5px) scale(1.035);
+  }
+  .button svg,
+  .small-button svg,
+  .outline-button svg {
+    transition: transform 0.2s;
+  }
+  .button:hover svg,
+  .small-button:hover svg,
+  .outline-button:hover svg {
+    transform: translateX(3px);
+  }
+}
+@media (hover: none) {
+  .product-card:hover,
+  .category-item:hover .product-image {
+    transform: none;
+  }
+}
+
 /* Staff operation forms and readable mobile tables. */
 .workspace-title {
   display: flex;

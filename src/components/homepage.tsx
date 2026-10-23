@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowUpRight,
   Droplets,
   Flower2,
   Headphones,
@@ -83,14 +84,21 @@ export function Homepage({
                 Explore the shop <ArrowRight size={18} />
               </Link>
               <Link href="/about" className="hero-secondary">
-                <span>↗</span> Our story
+                <span aria-hidden="true">
+                  <ArrowUpRight size={18} />
+                </span>{" "}
+                Our story
               </Link>
             </div>
           </div>
         </div>
       </section>
       <div className="container">
-        <section className="benefits-panel" aria-label="Explore BennyC">
+        <section
+          className="benefits-panel"
+          aria-label="Explore BennyC"
+          data-motion
+        >
           {benefits.map(({ Icon, title, text }) => (
             <div className="benefit" key={title}>
               <Icon size={41} strokeWidth={1} />
@@ -116,6 +124,7 @@ export function Homepage({
                     : `/shop?category=${slug}`
                 }
                 className="category-item"
+                data-motion
                 key={slug}
               >
                 <ProductImage
@@ -134,7 +143,7 @@ export function Homepage({
           </div>
         </section>
         <section className="featured-section" id="featured">
-          <div className="section-heading">
+          <div className="section-heading" data-motion>
             <h2>{preview ? "The preview collection" : "Featured products"}</h2>
             <span className="heading-rule">◇</span>
             <Link
@@ -173,7 +182,11 @@ export function Homepage({
             </div>
           )}
         </section>
-        <section className="ritual-banner" aria-labelledby="ritual-title">
+        <section
+          className="ritual-banner"
+          aria-labelledby="ritual-title"
+          data-motion
+        >
           <Image
             src="/images/beauty-ritual.png"
             alt="Illustrative skincare bottles on a botanical stone display"
@@ -204,7 +217,11 @@ export function Homepage({
             <ArrowRight size={19} />
           </Link>
         </section>
-        <section className="service-panel" aria-label="Store information">
+        <section
+          className="service-panel"
+          aria-label="Store information"
+          data-motion
+        >
           <div>
             <Package />
             <p>

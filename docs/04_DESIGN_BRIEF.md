@@ -64,6 +64,8 @@ Dashboard numbers must be real and labelled by date/population. In the foundatio
 
 ## Components and interactions
 
+User requested richer animation on 14 October 2026. Continue the established motion style on future storefront work: brief hero entrances, once-per-entry section/card reveals, gentle hover lift/zoom on fine pointers and tap feedback on touch controls. Respect reduced-motion preference, keep content visible without JavaScript and preserve focused controls. Use the shared StorefrontMotion component and existing CSS before adding dependencies. Avoid perpetual motion, scroll interception and effects that delay shopping or alter payment/stock behavior. Rendered phone/desktop motion review remains pending.
+
 Create shared buttons, labelled fields, selects, quantity controls, product cards, status badges, confirmation dialogs, alert panels, skeletons, empty states, paginated tables and mobile navigation. Avoid a generic component framework more complex than the actual screens need.
 
 Aim for at least 44 px comfortable touch targets. Support keyboard activation, visible focus and reduced-motion preference. Dialogs trap focus correctly and return it when closed. Use text/icons alongside status colours. Loading disables only the relevant action and preserves readable labels. Failure must offer a meaningful next step.
